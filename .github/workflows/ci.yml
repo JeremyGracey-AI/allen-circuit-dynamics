@@ -1,0 +1,18 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install ${{ matrix.python-version }}
+      - run: uv venv --python ${{ matrix.python-version }} && uv pip install -e ".[dev]"
+      - run: .venv/bin/ruff check src tests && .venv/bin/ruff format --check src tests
+      - run: .venv/bin/pytest -q --cov=allen_circuit_dynamics --cov-report=term-missing

@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+data/ecephys_cache/
+data/ecephys/*.npz
+data/*.npy
+outputs/*
+!outputs/demo/
+!outputs/demo/**
+.coverage
