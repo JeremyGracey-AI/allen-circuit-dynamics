@@ -14,6 +14,9 @@ if ! command -v uv >/dev/null 2>&1; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 export PATH="$HOME/.local/bin:$PATH"
+# A sourced ROS 2 setup puts /opt/ros/*/site-packages on PYTHONPATH, which leaks ROS pytest plugins
+# (launch_testing -> lark) into our venvs. Our venvs are self-contained, so drop it.
+unset PYTHONPATH
 
 echo "== main env (.venv) =="
 uv venv --python 3.11 .venv
