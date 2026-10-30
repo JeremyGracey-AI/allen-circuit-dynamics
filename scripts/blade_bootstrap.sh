@@ -35,7 +35,20 @@ if [[ "${1:-}" == "--fetch" ]]; then
   # 715093703 has probes in VISp, VISl, VISal, VISpm, VISam, VISrl.
   SESSION="${SESSION:-715093703}"
   AREAS="${AREAS:-VISp VISl VISal VISpm VISam VISrl}"
-  echo "== fetching session $SESSION (areas: $AREAS) into data/ — this is the slow step =="
+  # allensdk streams the 2.9 GB NWB through api.brain-map.org with a 1200 s timeout and no resume,
+  # which fails on anything under ~3 MB/s. Pull it from Allen's public S3 bucket first (resumable,
+  # no credentials); the cache then finds the file in place and skips its own download.
+  NWB_DIR="data/ecephys_cache/session_${SESSION}"
+  NWB="${NWB_DIR}/session_${SESSION}.nwb"
+  S3_URL="https://allen-brain-observatory.s3.us-west-2.amazonaws.com/visual-coding-neuropixels/ecephys-cache/session_${SESSION}/session_${SESSION}.nwb"
+  mkdir -p "$NWB_DIR"
+  if [[ ! -s "$NWB" ]]; then
+    echo "== downloading $NWB from S3 (resumable; rerun the script to resume) =="
+    curl -L -C - --retry 20 --retry-delay 5 --retry-all-errors -o "$NWB" "$S3_URL"
+  fi
+  ls -lh "$NWB"
+
+  echo "== building session tables / binning (areas: $AREAS) =="
   # shellcheck disable=SC2086
   .venv-allen/bin/acd fetch --session "$SESSION" --areas $AREAS --bin 0.05 --stimulus natural_movie_one \
       --cache data/ecephys_cache --out data/ecephys

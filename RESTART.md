@@ -12,6 +12,7 @@ State as of 2026-10-28 (built in a cloud session, delivered to the Mac Studio):
 4. Open the repo (it's private until the real-data run is in).
 
 ## allensdk
+- The NWB itself comes from Allen's public S3 bucket via curl (resumable); allensdk's own fetch times out at 1200 s on slow links. If the manifest's expected path ever changes, print `cache.get_session_table()` and compare.
 - Lives in its own `.venv-allen` (Python 3.10) because it pins scipy<1.11 / pandas<2.1 / numpy<2; the bootstrap script does this. Only `acd fetch` and the connectivity matrix run there; the `.npz` outputs are plain numpy and `.venv` runs the experiments.
 
 ## Why these choices (for the write-up)
