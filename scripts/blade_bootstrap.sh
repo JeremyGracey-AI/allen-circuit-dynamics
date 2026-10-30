@@ -19,7 +19,7 @@ export PATH="$HOME/.local/bin:$PATH"
 unset PYTHONPATH
 
 echo "== main env (.venv) =="
-uv venv --python 3.11 .venv
+uv venv --clear --python 3.11 .venv
 uv pip install --python .venv/bin/python -e ".[dev]"
 
 echo "== smoke: both experiments on synthetic data =="
@@ -28,7 +28,7 @@ echo "== smoke: both experiments on synthetic data =="
 
 if [[ "${1:-}" == "--fetch" ]]; then
   echo "== allensdk env (.venv-allen, Python 3.10) =="
-  uv venv --python 3.10 .venv-allen
+  uv venv --clear --python 3.10 .venv-allen
   uv pip install --python .venv-allen/bin/python -e ".[allen]"
 
   # Visual Coding Neuropixels, Brain Observatory 1.1 stimulus set.
