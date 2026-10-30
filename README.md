@@ -83,8 +83,8 @@ pytest
 Real data (Visual Coding Neuropixels, public S3 bucket, no credentials):
 
 ```bash
-uv pip install -e ".[allen]"       # allensdk
-acd fetch --session 715093703 --areas VISp VISl VISal VISpm VISam VISrl --out data/ecephys
+uv venv --python 3.10 .venv-allen && uv pip install --python .venv-allen/bin/python -e ".[allen]"   # allensdk pins old scipy/pandas
+.venv-allen/bin/acd fetch --session 715093703 --areas VISp VISl VISal VISpm VISam VISrl --out data/ecephys
 acd latent   --data data/ecephys/715093703_VISp_VISl.npz --out outputs/latent_715093703
 acd coupling --data data/ecephys/715093703_areas.npz --conn data/conn_VIS6.npy --out outputs/coupling_715093703
 ```

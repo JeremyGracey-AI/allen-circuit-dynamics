@@ -11,8 +11,8 @@ State as of 2026-10-28 (built in a cloud session, delivered to the Mac Studio):
 3. Look at `outputs/latent_715093703/*.png` and `outputs/coupling_715093703/*.png`; copy them into `outputs/real/` and update the README Status + one results paragraph per experiment. Keep the "Limits" section.
 4. Open the repo (it's private until the real-data run is in).
 
-## If allensdk install fights you
-- allensdk pins old pandas/numpy; use Python 3.10–3.11 and let uv resolve. If it still fails, fetch with a throwaway `uv venv --python 3.10 .venv-allen` and run only `acd fetch` from there; the `.npz` outputs are plain numpy and the main env runs the experiments.
+## allensdk
+- Lives in its own `.venv-allen` (Python 3.10) because it pins scipy<1.11 / pandas<2.1 / numpy<2; the bootstrap script does this. Only `acd fetch` and the connectivity matrix run there; the `.npz` outputs are plain numpy and `.venv` runs the experiments.
 
 ## Why these choices (for the write-up)
 - Block-sparse FA, not DLAG: DLAG adds time delays and is the published alternative to benchmark against *next*; this is the static baseline it should beat.
