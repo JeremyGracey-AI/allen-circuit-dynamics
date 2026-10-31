@@ -58,13 +58,16 @@ noise at 50 ms (VISrl: 9% shared / 5% private / 86% noise; VISp: 16 / 10 /
 75). The shared subspace decodes running speed (R² 0.27 ± 0.04 across folds;
 circular-shift null p95 −0.11) and neither private subspace does (−0.04,
 −0.07). All latents together reach 0.32 and the raw populations 0.41, so the
-10-dimensional model keeps most, not all, of the behavior-relevant signal.
-Cross-area prediction is near zero: E[VISp | VISrl] has R² −0.05 under the
-factor model and reduced-rank regression tops out at 0.04 by rank 6. Read
-together: at this bin size the "shared" factors look like a slow signal common
-to both areas (locomotion / arousal), not fast inter-area communication. That
-is the expected place for a static model to land and the reason DLAG-style
-delays are the next comparison.
+10-dimensional model keeps most, not all, of the behavior-relevant signal. The
+raw populations split sharply: VISrl alone decodes running at 0.38, VISp alone
+at 0.14. Cross-area prediction is near zero: E[VISp | VISrl] has R² −0.05
+under the factor model and reduced-rank regression tops out at 0.04 by rank 6.
+Read together: at this bin size the "shared" factors look like a slow signal
+common to both areas (locomotion / arousal, strongest in RL), not fast
+inter-area communication. That is the expected place for a static model to
+land and the reason DLAG-style delays are the next comparison.
+
+![real decoding](outputs/latent_715093703/decoding_by_subspace.png)
 
 ## Experiment 2 — connectivity-constrained linear dynamics
 
@@ -92,17 +95,20 @@ help: at every λ from 0.01 to 10 the atlas-constrained and shuffled-atlas
 models agree to three decimals (Δ ≤ +0.001), and both lose accuracy once λ
 exceeds about 1 (0.41 → 0.38 at λ = 10). So on this session the projection-
 density matrix carries no information the one-step predictor can use beyond
-what any equally sparse prior would. One suggestive signal: with no prior at
-all, the fitted off-diagonal coupling-block norms correlate with projection
-density (r = 0.54 over 20 blocks; the permutation p-value is computed by
-`metrics.json` and should be quoted from there, not from this sentence). That
-correlation is descriptive and comes from a single session and a single bin
-size.
+what any equally sparse prior would. Nor does the unconstrained fit recover
+the anatomy on its own: its off-diagonal coupling-block norms correlate with
+projection density at r = 0.38 over 20 blocks, permutation p = 0.075 (null
+95th percentile 0.42). 77% of ‖A‖² sits in the within-area blocks. On this
+session, then, the answer to question 2 is no at 50 ms.
 
-The first real run exposed a scaling bug — the penalty was in absolute units
-and was swamped by a 10× longer recording — which is why λ is now
-dimensionless (see `models/coupling.py`). The synthetic demo's curve is
-unchanged under the fix.
+![real coupling](outputs/coupling_715093703/coupling_vs_lambda.png)
+
+Two things the first real run taught, both now fixed in the code: the penalty
+was in absolute units and was swamped by a 10× longer recording, so λ is now
+dimensionless (see `models/coupling.py`; the synthetic curve is unchanged);
+and the anatomy correlation was being computed from the atlas-penalised fit,
+which inflated it to r = 0.54 (p = 0.016) even at the near-zero selected λ —
+it is now computed from the λ = 0 fit.
 
 ## Run it
 

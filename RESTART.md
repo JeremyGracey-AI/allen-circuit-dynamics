@@ -7,7 +7,7 @@ State as of 2026-10-30 (evening):
 - Experiment 2's λ is now dimensionless (penalty scaled to the data curvature) after the first real run showed the old absolute λ grid did nothing on a 12k-bin session.
 
 ## Next
-1. Commit `outputs/latent_715093703/` and `outputs/coupling_715093703/` from the Blade (`.gitignore` already whitelists `outputs/*_715093703/`). Quote `corr_permutation_p` from `coupling_715093703/metrics.json` in the README once it is in.
+1. Done: real-session outputs are committed under `outputs/*_715093703/` and quoted in the README.
 2. Second session + 20 ms bins — the two obvious robustness checks before any sentence in the README is generalised.
 3. DLAG-style time-delayed shared latents: the test that separates "slow common signal" from "communication" in Experiment 1.
 4. Experiment 2 input term (stimulus / running speed as exogenous input) so the one-step model is not forced to explain stimulus-driven variance as recurrence.
