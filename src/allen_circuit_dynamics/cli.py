@@ -23,7 +23,7 @@ from .experiments import (
     run_latent_experiment,
 )
 from .provenance import provenance
-from .report import plot_coupling, plot_latent
+from .report import plot_coupling, plot_force, plot_latent
 from .synth import CoupledSynthConfig, SynthConfig, make_synthetic, make_synthetic_coupled
 
 
@@ -149,6 +149,60 @@ def cmd_coupling(args: argparse.Namespace) -> int:
     return 0
 
 
+def _summarise_force(m: dict) -> str:
+    lines = []
+    for c, s in m["summary"].items():
+        d = s["decoding_r2"]
+        p = s["decoding_null_p95"]
+        mr = s["decoding_motion_regressed_r2"]
+        lag = s["lag_peak_bins"]
+        vp = s["variance_partition"]
+        lines.append(
+            f"[{c}] d_shared {s['selected_d_shared']['mean']:.1f} d_private "
+            f"{s['selected_d_private']['mean']:.1f} | D1 shared/private/indep "
+            f"{vp['D1']['shared']['mean']:.2f}/{vp['D1']['private']['mean']:.2f}/"
+            f"{vp['D1']['independent']['mean']:.2f}, D2 {vp['D2']['shared']['mean']:.2f}/"
+            f"{vp['D2']['private']['mean']:.2f}/{vp['D2']['independent']['mean']:.2f}"
+        )
+        lines.append(
+            f"      lever R²: shared {d['shared']['mean']:.3f}±{d['shared']['sd']:.3f} "
+            f"(null p95 {p['shared']['mean']:.3f}; motion-regressed {mr['shared']['mean']:.3f}) | "
+            f"private_both {d['private_both']['mean']:.3f} | raw D1 {d['raw_D1']['mean']:.3f} "
+            f"raw D2 {d['raw_D2']['mean']:.3f} raw both {d['raw_both']['mean']:.3f}"
+        )
+        lines.append(
+            "      lag of peak (bins, <0 = neural leads): "
+            + ", ".join(f"{k} {v['mean']:+.1f}±{v['sd']:.1f}" for k, v in lag.items())
+        )
+    return "\n".join(lines)
+
+
+def cmd_force(args: argparse.Namespace) -> int:
+    from .experiments_force import ForceConfig, run_force_experiment
+
+    cfg = ForceConfig(seed=args.seed, n_draws=args.draws)
+    out = Path(args.out)
+    if args.data:
+        datasets = [(Path(args.data).stem, PopulationDataset.load(args.data))]
+    else:
+        from .klee_data import KleeConfig, load_klee
+
+        mice = range(6) if args.mouse == "all" else [int(args.mouse)]
+        datasets = []
+        for mi in mice:
+            ds = load_klee(KleeConfig(mat_path=Path(args.mat), mouse=mi))
+            datasets.append((f"{ds.meta['animal']}", ds))
+    for name, ds in datasets:
+        m = run_force_experiment(ds, cfg)
+        sub = out / name
+        p = _write_metrics(m, sub, cfg, ds.meta)
+        figs = plot_force(m, sub)
+        print(f"== {name}: D1 {ds.n_units[0]} D2 {ds.n_units[1]} units, {ds.n_bins} bins ==")
+        print(_summarise_force(m))
+        print(f"wrote {p} and {len(figs)} figures")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="acd", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -163,7 +217,9 @@ def main(argv: list[str] | None = None) -> int:
     f = sub.add_parser("fetch", help="pull one Allen Neuropixels session (needs allensdk)")
     f.add_argument("--session", type=int, required=True)
     f.add_argument(
-        "--areas", nargs="*", default=[],
+        "--areas",
+        nargs="*",
+        default=[],
         help="visual areas to use; default: top areas by QC-passing unit count",
     )
     f.add_argument("--min-units", type=int, default=15, help="min QC-passing units per area")
@@ -186,6 +242,15 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--out", default="outputs/coupling")
     c.add_argument("--seed", type=int, default=0)
     c.set_defaults(fn=cmd_coupling)
+
+    fo = sub.add_parser("force", help="experiment 3: D1/D2 shared-private structure and the lever")
+    fo.add_argument("--mat", help="Klee et al. 2026 Switching_2p_Struc_Main.mat")
+    fo.add_argument("--mouse", default="all", help="0-5 or 'all'")
+    fo.add_argument("--data", help="instead of --mat: a saved PopulationDataset .npz with extras")
+    fo.add_argument("--out", required=True)
+    fo.add_argument("--draws", type=int, default=10)
+    fo.add_argument("--seed", type=int, default=0)
+    fo.set_defaults(fn=cmd_force)
 
     args = p.parse_args(argv)
     return int(args.fn(args))

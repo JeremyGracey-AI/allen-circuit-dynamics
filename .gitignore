@@ -16,3 +16,5 @@ outputs/*
 .coverage
 !outputs/*_715093703/
 !outputs/*_715093703/**
+!outputs/force_klee/
+!outputs/force_klee/**

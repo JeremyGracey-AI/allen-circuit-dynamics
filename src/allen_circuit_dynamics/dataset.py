@@ -35,6 +35,9 @@ class PopulationDataset:
         Human-readable names for the two populations (e.g. brain areas).
     meta:
         Free-form provenance: session id, unit filters, source, versions.
+    extras:
+        Optional per-bin covariates, each ``(n_bins,)`` (e.g. a context label,
+        a motion-energy trace). Saved alongside the populations.
     """
 
     x1: np.ndarray
@@ -44,6 +47,7 @@ class PopulationDataset:
     bin_s: float
     pop_names: tuple[str, str] = ("pop1", "pop2")
     meta: dict = field(default_factory=dict)
+    extras: dict[str, np.ndarray] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         n = self.x1.shape[0]
@@ -61,6 +65,9 @@ class PopulationDataset:
             raise ValueError("Population matrices contain non-finite values.")
         if not np.all(np.isfinite(self.behavior)):
             raise ValueError("behavior contains non-finite values.")
+        for k, v in self.extras.items():
+            if v.shape != (n,):
+                raise ValueError(f"extras[{k!r}] must have shape ({n},), got {v.shape}.")
 
     @property
     def n_bins(self) -> int:
@@ -98,6 +105,7 @@ class PopulationDataset:
             blocks=self.blocks,
             bin_s=np.array(self.bin_s),
             pop_names=np.array(self.pop_names),
+            **{f"extra__{k}": v for k, v in self.extras.items()},
         )
         with open(path.with_suffix(".meta.json"), "w") as fh:
             json.dump(self.meta, fh, indent=2, sort_keys=True, default=str)
@@ -121,4 +129,5 @@ class PopulationDataset:
                 bin_s=float(z["bin_s"]),
                 pop_names=tuple(str(s) for s in z["pop_names"]),
                 meta=meta,
+                extras={k[len("extra__") :]: z[k] for k in z.files if k.startswith("extra__")},
             )

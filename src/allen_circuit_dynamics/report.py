@@ -176,3 +176,77 @@ def plot_coupling(metrics: dict, out_dir: Path) -> list[str]:
     plt.close(fig)
     written.append(str(p))
     return written
+
+
+def plot_force(metrics: dict, out_dir: Path, tag: str = "") -> list[str]:
+    """Experiment 3, one mouse: decoding by subspace, lag profiles, variance partition."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    s = metrics["summary"]
+    contexts = [c for c in ("all", "cued", "selfpaced") if c in s]
+    label = metrics["dataset"].get("animal") or tag or "dataset"
+
+    # 1. decoding by subspace, one group of bars per context
+    keys = ["shared", "private_D1", "private_D2", "all_latents", "raw_D1", "raw_D2", "raw_both"]
+    fig, ax = plt.subplots(figsize=(7.5, 3.4))
+    w = 0.8 / max(len(contexts), 1)
+    for ci, c in enumerate(contexts):
+        r = [s[c]["decoding_r2"][k]["mean"] for k in keys]
+        e = [s[c]["decoding_r2"][k]["sd"] for k in keys]
+        p95 = [s[c]["decoding_null_p95"][k]["mean"] for k in keys]
+        xs = np.arange(len(keys)) + (ci - (len(contexts) - 1) / 2) * w
+        ax.bar(xs, r, width=w * 0.9, yerr=e, capsize=2, label=c)
+        ax.plot(xs, p95, "k_", ms=10)
+    ax.axhline(0, color="k", lw=0.5)
+    ax.set_xticks(range(len(keys)), keys, rotation=30, ha="right", fontsize=8)
+    ax.set_ylabel("held-out R² (lever)")
+    ax.set_title(f"{label}: which subspace carries the lever? (ticks: shift-null p95)", fontsize=9)
+    ax.legend(frameon=False, fontsize=8)
+    fig.tight_layout()
+    p = out_dir / f"force_decoding{tag}.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    written.append(str(p))
+
+    # 2. lag profiles: shared vs private, per context
+    fig, axes = plt.subplots(1, len(contexts), figsize=(3.3 * len(contexts), 3.0), sharey=True)
+    axes = np.atleast_1d(axes)
+    bin_s = metrics["dataset"]["bin_s"]
+    for ax, c in zip(axes, contexts, strict=True):
+        lp = s[c]["lag_profile_mean"]
+        for k, style in (("shared", "-"), ("private_D1", "--"), ("private_D2", ":")):
+            if k in lp:
+                lags = np.array(lp[k]["lags_bins"]) * bin_s
+                ax.plot(lags, lp[k]["r2"], style, label=k)
+                ax.plot(lags, lp[k]["null_p95"], style, color="gray", lw=0.8)
+        ax.axvline(0, color="k", lw=0.5)
+        ax.set_title(c, fontsize=9)
+        ax.set_xlabel("t_neural − t_lever (s)")
+    axes[0].set_ylabel("held-out R²")
+    axes[0].legend(frameon=False, fontsize=7)
+    fig.suptitle(
+        f"{label}: does the neural signal lead the lever? (< 0 = neural first)", fontsize=9
+    )
+    fig.tight_layout()
+    p = out_dir / f"force_lag_profile{tag}.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    written.append(str(p))
+
+    # 3. variance partition D1 vs D2
+    fig, ax = plt.subplots(figsize=(4.2, 3.0))
+    parts = ["shared", "private", "independent"]
+    bottom = np.zeros(2)
+    for part in parts:
+        vals = [s["all"]["variance_partition"][pop][part]["mean"] for pop in ("D1", "D2")]
+        ax.bar(["D1", "D2"], vals, bottom=bottom, label=part)
+        bottom += vals
+    ax.set_ylabel("fraction of variance")
+    ax.set_title(f"{label}: shared / private / independent", fontsize=9)
+    ax.legend(frameon=False, fontsize=8)
+    fig.tight_layout()
+    p = out_dir / f"force_variance_partition{tag}.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    written.append(str(p))
+    return written

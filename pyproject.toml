@@ -17,6 +17,7 @@ dependencies = [
   "scikit-learn>=1.2",
   "matplotlib>=3.6",
   "PyYAML>=6",
+  "h5py>=3.8",
 ]
 
 [project.optional-dependencies]

@@ -155,3 +155,56 @@ def make_synthetic_coupled(cfg: CoupledSynthConfig | None = None) -> dict:
         "area_dims": dims,
         "area_names": [f"area{i}" for i in range(n_areas)],
     }
+
+
+# ----------------------------------------------------------------------------- Experiment 3
+
+
+@dataclass(frozen=True)
+class ForceSynthConfig:
+    """Calcium-like two-population data whose shared factors lead a lever by ``lead_bins``."""
+
+    n_bins: int = 6000
+    n_units: tuple[int, int] = (60, 40)  # unequal on purpose: count matching must handle it
+    d_shared: int = 3
+    d_private: tuple[int, int] = (2, 2)
+    ar_coef: float = 0.9
+    lead_bins: int = 4  # lever follows the shared factors by this many bins
+    noise_sd: float = 1.0
+    lever_noise_sd: float = 0.5
+    n_blocks: int = 12
+    seed: int = 0
+
+
+def make_synthetic_force(cfg: ForceSynthConfig | None = None) -> tuple[PopulationDataset, dict]:
+    cfg = cfg or ForceSynthConfig()
+    rng = np.random.default_rng(cfg.seed)
+    z = _ar1(rng, cfg.n_bins, cfg.d_shared, cfg.ar_coef)
+    u1 = _ar1(rng, cfg.n_bins, cfg.d_private[0], cfg.ar_coef)
+    u2 = _ar1(rng, cfg.n_bins, cfg.d_private[1], cfg.ar_coef)
+    n1, n2 = cfg.n_units
+    W1, W2 = rng.normal(size=(cfg.d_shared, n1)), rng.normal(size=(cfg.d_shared, n2))
+    V1, V2 = rng.normal(size=(cfg.d_private[0], n1)), rng.normal(size=(cfg.d_private[1], n2))
+    x1 = z @ W1 + u1 @ V1 + cfg.noise_sd * rng.normal(size=(cfg.n_bins, n1))
+    x2 = z @ W2 + u2 @ V2 + cfg.noise_sd * rng.normal(size=(cfg.n_bins, n2))
+    # lever[t] = readout of z[t - lead]  ->  neural leads the lever by `lead_bins`
+    w = rng.normal(size=cfg.d_shared)
+    drive = z @ w
+    lever = np.roll(drive, cfg.lead_bins)
+    lever[: cfg.lead_bins] = drive[0]
+    lever = lever + cfg.lever_noise_sd * rng.normal(size=cfg.n_bins)
+    blocks = np.minimum(np.arange(cfg.n_bins) * cfg.n_blocks // cfg.n_bins, cfg.n_blocks - 1)
+    context = (np.arange(cfg.n_bins) // (cfg.n_bins // 6)) % 2  # alternating blocks, like the task
+    motion = 0.3 * lever + rng.normal(size=cfg.n_bins)
+    ds = PopulationDataset(
+        x1=x1,
+        x2=x2,
+        behavior=lever,
+        blocks=blocks,
+        bin_s=0.1,
+        pop_names=("D1", "D2"),
+        meta={"source": "synthetic_force", "planted": {"lead_bins": cfg.lead_bins}},
+        extras={"context": context.astype(float), "motion": motion},
+    )
+    truth = {"z": z, "u1": u1, "u2": u2, "lead_bins": cfg.lead_bins}
+    return ds, truth

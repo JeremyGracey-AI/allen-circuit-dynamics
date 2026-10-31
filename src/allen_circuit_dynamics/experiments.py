@@ -192,9 +192,7 @@ def run_coupling_experiment(
     norms = free.block_norms()
     off = ~np.eye(len(area_dims), dtype=bool)
     conn_arr = np.asarray(conn, dtype=float)
-    corr = (
-        float(np.corrcoef(norms[off], conn_arr[off])[0, 1]) if off.sum() > 2 else float("nan")
-    )
+    corr = float(np.corrcoef(norms[off], conn_arr[off])[0, 1]) if off.sum() > 2 else float("nan")
     # Permutation null for that correlation: shuffle the off-diagonal connectivity entries.
     null = np.array(
         [np.corrcoef(norms[off], shuffle_conn(conn_arr, rng)[off])[0, 1] for _ in range(cfg.n_perm)]
