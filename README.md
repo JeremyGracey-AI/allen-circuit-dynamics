@@ -1,8 +1,8 @@
 # allen-circuit-dynamics
 
 [![CI](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/actions/workflows/ci.yml/badge.svg)](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/allen-circuit-dynamics.svg)](https://pypi.org/project/allen-circuit-dynamics/)
-[![Python](https://img.shields.io/pypi/pyversions/allen-circuit-dynamics.svg)](https://pypi.org/project/allen-circuit-dynamics/)
+[![PyPI](https://img.shields.io/pypi/v/allen-circuit-dynamics.svg?cacheSeconds=3600)](https://pypi.org/project/allen-circuit-dynamics/)
+[![Python](https://img.shields.io/pypi/pyversions/allen-circuit-dynamics.svg?cacheSeconds=3600)](https://pypi.org/project/allen-circuit-dynamics/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Latent-variable models of simultaneously recorded neural populations, run on
