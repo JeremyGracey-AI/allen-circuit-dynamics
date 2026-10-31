@@ -7,6 +7,7 @@ __pycache__/
 dist/
 build/
 data/ecephys_cache/
+data/nwb/
 data/ecephys/*.npz
 data/*.npy
 outputs/*

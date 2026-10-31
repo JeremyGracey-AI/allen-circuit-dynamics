@@ -36,19 +36,29 @@ if [[ "${1:-}" == "--fetch" ]]; then
   SESSION="${SESSION:-715093703}"
   AREAS="${AREAS:-VISp VISl VISal VISpm VISam VISrl}"
   # allensdk streams the 2.9 GB NWB through api.brain-map.org with a 1200 s timeout and no resume,
-  # which fails on anything under ~3 MB/s. Pull it from Allen's public S3 bucket first (resumable,
-  # no credentials); the cache then finds the file in place and skips its own download.
+  # and on a failed fetch its cache DELETES whatever is at the cache path. So the resumable curl
+  # download lives in data/nwb/ (never touched by allensdk) and is copied into the cache path
+  # right before the cache runs.
+  DL_DIR="data/nwb"
+  DL="${DL_DIR}/session_${SESSION}.nwb"
   NWB_DIR="data/ecephys_cache/session_${SESSION}"
   NWB="${NWB_DIR}/session_${SESSION}.nwb"
   S3_URL="https://allen-brain-observatory.s3.us-west-2.amazonaws.com/visual-coding-neuropixels/ecephys-cache/session_${SESSION}/session_${SESSION}.nwb"
-  mkdir -p "$NWB_DIR"
-  if [[ ! -s "$NWB" ]]; then
-    echo "== downloading $NWB from S3 (resumable; rerun the script to resume) =="
-    curl -L -C - --retry 20 --retry-delay 5 --retry-all-errors -o "$NWB" "$S3_URL"
+  EXPECTED_BYTES=$(curl -sSI "$S3_URL" | tr -d '\r' | awk 'tolower($1)=="content-length:"{print $2}')
+  mkdir -p "$DL_DIR" "$NWB_DIR"
+  # Salvage a partial download allensdk's path may hold from an earlier run (it never completes there).
+  if [[ ! -s "$DL" && -s "$NWB" ]]; then mv "$NWB" "$DL"; fi
+  if [[ ! -s "$DL" || "$(stat -c %s "$DL")" != "$EXPECTED_BYTES" ]]; then
+    echo "== downloading $DL from S3 (expected $EXPECTED_BYTES bytes; resumable — rerun to resume) =="
+    curl -L -C - --retry 20 --retry-delay 5 --retry-all-errors -o "$DL" "$S3_URL"
   fi
-  ls -lh "$NWB"
+  if [[ "$(stat -c %s "$DL")" != "$EXPECTED_BYTES" ]]; then
+    echo "download incomplete ($(stat -c %s "$DL") of $EXPECTED_BYTES bytes); rerun to resume"; exit 1
+  fi
+  cp -f "$DL" "$NWB"
+  ls -lh "$DL" "$NWB"
   # Fail fast if the NWB can't be opened with the pinned pynwb/hdmf, instead of letting the
-  # allensdk cache misread a reader error as a missing file and start a 3-hour re-download.
+  # allensdk cache misread a reader error as a missing file and start a multi-hour re-download.
   .venv-allen/bin/python - "$NWB" <<'PY'
 import sys, pynwb, hdmf
 with pynwb.NWBHDF5IO(sys.argv[1], "r", load_namespaces=True) as io:
