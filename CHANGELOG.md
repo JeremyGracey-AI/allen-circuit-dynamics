@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-10-31
+- Experiment 3: D1 vs D2 striatal neurons, shared / private covariance and the lever, on the public Klee et al. (2026) two-photon dataset (six mice). Pre-registered (`docs/experiment3_preregistration.md`, `b1676da`) before the run; verdicts and effect sizes in the README. Loader (`klee_data.py`), count-matched draws, three-way partition, motion-regressed decoding, lag profile, `acd force`, `scripts/evaluate_prereg.py`.
+- `PopulationDataset.extras` for per-bin covariates; `lagged.py` block-safe lag pairing and within-block shift null.
+- README reframed around three output contracts (observations / state / action).
+
 ## 0.1.1 — 2026-10-30
 - First real-session run (Visual Coding Neuropixels 715093703); results in README.
 - `acd fetch` chooses areas from the session (top VIS* by QC-passing units, `--min-units`, `--max-areas`) instead of a hard-coded list.

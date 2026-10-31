@@ -1,23 +1,34 @@
 # allen-circuit-dynamics
 
-Two questions about simultaneously recorded neural populations, asked of
-Allen Institute open Neuropixels data, with a pipeline that runs end-to-end on
-synthetic data in under a minute.
+Latent-variable models of simultaneously recorded neural populations, run on
+open data from the Allen Institute and its collaborators, with a pipeline that
+runs end-to-end on synthetic data in under a minute.
 
-1. **Shared vs. private.** When two populations are recorded at the same time,
-   how much of each one's activity is shared with the other, how much is
-   private, and which part encodes a continuously measured behavior?
-2. **Does wiring constrain dynamics?** When several areas are recorded together,
-   does the anatomical projection structure between them predict the
-   inter-area coupling of a linear dynamical model fit to the activity?
+One model sits underneath: a population's activity is a few shared latents,
+a few private latents, and per-neuron noise, possibly with linear dynamics on
+the latents. The three experiments score that model on three different
+**output contracts**, in the sense of asking what the model is *for*:
 
-Status: pipeline complete and tested on synthetic data, and run once on a real
-session (Visual Coding Neuropixels 715093703: VISrl, VISp, VISpm, VISl, VISam;
-50 ms bins inside `natural_movie_one`; 12,009 bins). Results below are from
-that single session and should be read as a first pass, not a study.
-Provenance: the Experiment 1 outputs were produced at commit `896f68c` (its code
-is unchanged since); the Experiment 2 outputs at `dbc8ed8`. Each `metrics.json`
-records its own SHA.
+| | Contract | Scored by | Data |
+|---|---|---|---|
+| Exp 1 | **Observations** — reconstruct the recorded activity | held-out log-likelihood; shared / private / independent variance partition | Visual Coding Neuropixels, VISrl ↔ VISp |
+| Exp 2 | **State** — predict the next latent state | held-out one-step R², with and without an anatomical prior | Visual Coding Neuropixels, five visual areas + Mouse Connectivity Atlas |
+| Exp 3 | **Action** — predict the animal's output from the latents | held-out R² of lever displacement per subspace, lag profile, pre-registered | Klee et al. 2026 two-photon D1 / D2 striatum (Zenodo) |
+
+A model that scores well on one contract need not score well on another; the
+point of running all three is to say which one each dataset supports. (The
+observation / state / action split is the agent–environment loop with the
+latent as the state; the same three-way reading has been used to sort
+"world models" by what they emit.)
+
+Status: all three pipelines tested on synthetic data with planted structure;
+Experiments 1 and 2 run once on Visual Coding session 715093703 (VISrl, VISp,
+VISpm, VISl, VISam; 50 ms bins inside `natural_movie_one`; 12,009 bins);
+Experiment 3 pre-registered in `docs/experiment3_preregistration.md` before
+the run and run on all six mice of the Klee et al. dataset. Every result below
+is a first pass on one session per animal, not a study. Provenance: Experiment
+1 outputs at commit `896f68c` (code unchanged since), Experiment 2 at
+`dbc8ed8`, Experiment 3 at the SHA in `outputs/force_klee/*/metrics.json`.
 
 ## Experiment 1 — shared / private factor analysis
 
@@ -113,6 +124,63 @@ and the anatomy correlation was being computed from the atlas-penalised fit,
 which inflated it to r = 0.54 (p = 0.016) even at the near-zero selected λ —
 it is now computed from the λ = 0 fit.
 
+## Experiment 3 — D1 vs D2 striatal neurons, shared / private covariance, and the lever
+
+Pre-registered in [`docs/experiment3_preregistration.md`](docs/experiment3_preregistration.md)
+(commit `b1676da`) before any model was fit; the thresholds below are the ones
+written there. Data: Klee et al. (2026), six mice, two-photon calcium imaging
+of anterior dorsal striatum at 30 fps, every ROI labelled D1-SPN or D2-SPN, a
+lever on a rotary encoder (displacement, encoder units), video motion energy,
+cued and self-paced blocks. Same model as Experiment 1 with D1 as population 1
+and D2 as population 2; 100 ms bins; D1 and D2 count-matched by ten random
+subsample draws; everything reported as the mean over draws.
+
+**Partition (the observation contract).** In every mouse the shared fraction
+of variance is nearly the same for D1 and D2 — 0.18 / 0.18, 0.21 / 0.22,
+0.25 / 0.25, 0.24 / 0.23, 0.26 / 0.21, 0.21 / 0.16 — and the population-
+specific (private) fraction is 1–5%. Almost all the correlated variance in
+either population is variance it shares with the other. Cross-prediction by
+reduced-rank regression is symmetric (rank 8: D2 from D1 0.08–0.18, D1 from D2
+0.10–0.18). Held-out likelihood selected the top of the pre-registered
+`d_shared` grid (8) in four of six mice, so the shared dimensionality is a
+floor, not an estimate.
+
+**Decoding (the action contract).** The pre-registered verdicts, six mice:
+
+| | Hypothesis | Verdict | What the numbers say |
+|---|---|---|---|
+| H1 | D1 and D2 decode the lever equally | supported, 5 / 6 | Substantive only in JK239 (0.15 vs 0.14); JK238 fails (0.38 vs 0.26); in three mice both are ≈ 0, so equality is trivial |
+| H2a | shared subspace beats the shift null | supported, 5 / 6 | Real in JK238 (0.36, null p95 −0.27) and JK239 (0.17, −0.14); marginal in JK244 (0.05); ≈ 0 in the three EY217 mice, where it clears a negative null by 0.01–0.05 |
+| H2b | shared beats private-D1 + private-D2 | supported, 4 / 6 | Private subspaces decode nothing anywhere (−0.01 to 0.03) |
+| H3 | neural leads the lever by 0.1–0.7 s | **not supported**, 1 / 6 | The shared lag profile peaks at 0 in five mice; its right tail (neural after lever) decays slower, which is the indicator's own kernel |
+| H4a | shared fraction same across contexts | not supported, 3 / 6 | |
+| H4b | lead differs across contexts | not supported, 3 / 6 | Context subsets have 4–6 CV blocks, so single-block test folds with their own lever offsets; the context analysis is under-powered as pre-registered |
+
+Motion regression (video motion energy, ±200 ms, inside the training fold)
+halves JK238's shared R² (0.36 → 0.18) and leaves JK239's (0.17 → 0.24) and
+the near-zero mice unchanged, so in the one mouse with strong decoding about
+half of the shared–lever relation is movement of the animal rather than the
+lever as such.
+
+![JK238 decoding](outputs/force_klee/JK238/force_decoding.png)
+![JK238 lag profile](outputs/force_klee/JK238/force_lag_profile.png)
+
+**Reading.** The covariance structure is the robust finding: D1 and D2 share
+one common subspace in every animal and keep almost nothing to themselves,
+which is the population-level version of the paper's "both populations
+encode the action." Whether that subspace carries the lever varies by animal
+from 0.36 to nothing, and the three mice with no lever signal are the three
+D1-Cre (EY217) animals; the neural–video correlation is also a third of the
+others' there, so it is a property of those recordings (press rates are
+half the others') rather than of the model. The
+timing question is not answerable at 30 fps with a slow indicator: a lead
+shorter than the GCaMP decay is folded into lag 0.
+
+Per-mouse `metrics.json` and figures are under `outputs/force_klee/`;
+`scripts/evaluate_prereg.py` reproduces the table from them. JK326's metrics
+record `5c913f0`, a commit that changed only the summary and plotting code
+after the analysis code at `6cfff70`.
+
 ## Run it
 
 ```bash
@@ -133,6 +201,13 @@ SESSION=715093703 bash scripts/run_experiments.sh                    # connectiv
 `scripts/blade_bootstrap.sh --fetch` does all of the above on a fresh WSL box,
 including a parallel ranged download of the 2.7 GB NWB from Allen's public S3
 bucket (`scripts/pdl.sh`; allensdk's own download times out on slow links).
+
+Experiment 3 (Klee et al. 2026, 246 MB, CPU only, ~45 min per mouse):
+
+```bash
+# Data Structures/Switching_2p_Struc_Main.mat from https://zenodo.org/records/16333867
+acd force --mat Switching_2p_Struc_Main.mat --mouse all --out outputs/force_klee
+```
 
 ## What the loader does to the data
 
@@ -163,8 +238,12 @@ src/allen_circuit_dynamics/
   experiments.py      the two experiments as pure functions → metrics dict
   report.py           one figure per question
   allen_data.py       AllenSDK loader (lazy import) + atlas projection matrix
-  cli.py              acd demo | fetch | latent | coupling
-tests/                14 tests, ~30 s, synthetic only
+  klee_data.py        Klee et al. 2026 two-photon loader (h5py; dF/F per the paper)
+  lagged.py           lag pairing that never crosses CV blocks; within-block shift null
+  experiments_force.py  Experiment 3 (count-matched draws, contexts, lag profile)
+  cli.py              acd demo | fetch | latent | coupling | force
+docs/experiment3_preregistration.md   hypotheses, grid, controls, decision rules — committed before the run
+tests/                19 tests, ~2 min, synthetic only
 scripts/blade_bootstrap.sh
 ```
 
@@ -186,6 +265,12 @@ scripts/blade_bootstrap.sh
   will show up as "shared" under a static model whether or not the areas
   communicate. Time-delayed shared latents (DLAG) are the test that separates
   the two.
+- Experiment 3: one session per mouse (no learning across days), no EMG, lever
+  displacement rather than force, calcium at 30 fps (no timing claim finer
+  than the indicator), and three of six mice with little lever signal in the
+  neural data at all. The context split is under-powered by block count.
+- The `d_shared` grid ceiling (8) was hit in four mice; the shared
+  dimensionality reported there is a lower bound.
 
 ## References
 
@@ -194,3 +279,5 @@ scripts/blade_bootstrap.sh
 - Gokcen, Jasper, Semedo, Zandvakili, Kohn, Machens & Yu (2022). Disentangling the flow of signals between populations of neurons. *Nature Computational Science*.
 - Siegle et al. (2021). Survey of spiking in the mouse visual system reveals functional hierarchy. *Nature*. (Visual Coding Neuropixels dataset)
 - Oh et al. (2014). A mesoscale connectome of the mouse brain. *Nature*. (Mouse Connectivity Atlas)
+- Klee, Fernando-Peiris, Athalye, Costa, Peterka & Sippy (2026). Shared striatal neurons exhibit context-specific dynamics for internally and externally driven actions. *Science Advances*. Data: Zenodo 10.5281/zenodo.16333867, CC BY 4.0. (Experiment 3 dataset)
+- Athalye, Ganguly, Costa & Carmena (2017). Emergence of coordinated neural dynamics underlies neuroprosthetic learning and skillful control. *Neuron*. (shared vs. private variance vocabulary)
