@@ -185,7 +185,11 @@ def run_coupling_experiment(
         }
     best_lam = max(by_lam, key=lambda k: by_lam[k]["atlas_r2"])
     final = CoupledLDS(area_dims, conn=conn, lam=float(best_lam), ridge=cfg.ridge).fit(s, blocks)
-    norms = final.block_norms()
+    norms_selected = final.block_norms()
+    # The anatomy comparison uses the UNCONSTRAINED fit: a prior that favours the atlas pattern
+    # would otherwise manufacture the very correlation being tested.
+    free = CoupledLDS(area_dims, conn=None, lam=0.0, ridge=cfg.ridge).fit(s, blocks)
+    norms = free.block_norms()
     off = ~np.eye(len(area_dims), dtype=bool)
     conn_arr = np.asarray(conn, dtype=float)
     corr = (
@@ -205,7 +209,8 @@ def run_coupling_experiment(
         "unconstrained_r2": unconstrained,
         "by_lambda": by_lam,
         "selected_lambda": float(best_lam),
-        "coupling_block_norms": norms.tolist(),
+        "coupling_block_norms": norms.tolist(),  # unconstrained fit (lambda = 0)
+        "coupling_block_norms_at_selected_lambda": norms_selected.tolist(),
         "connectivity": np.asarray(conn).tolist(),
         "corr_blocknorm_vs_connectivity_offdiag": corr,
         "corr_permutation_p": corr_p,
