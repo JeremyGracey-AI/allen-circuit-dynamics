@@ -190,10 +190,11 @@ def plot_force(metrics: dict, out_dir: Path, tag: str = "") -> list[str]:
     keys = ["shared", "private_D1", "private_D2", "all_latents", "raw_D1", "raw_D2", "raw_both"]
     fig, ax = plt.subplots(figsize=(7.5, 3.4))
     w = 0.8 / max(len(contexts), 1)
+    nan = {"mean": np.nan, "sd": 0.0}
     for ci, c in enumerate(contexts):
-        r = [s[c]["decoding_r2"][k]["mean"] for k in keys]
-        e = [s[c]["decoding_r2"][k]["sd"] for k in keys]
-        p95 = [s[c]["decoding_null_p95"][k]["mean"] for k in keys]
+        r = [s[c]["decoding_r2"].get(k, nan)["mean"] for k in keys]
+        e = [s[c]["decoding_r2"].get(k, nan)["sd"] for k in keys]
+        p95 = [s[c]["decoding_null_p95"].get(k, nan)["mean"] for k in keys]
         xs = np.arange(len(keys)) + (ci - (len(contexts) - 1) / 2) * w
         ax.bar(xs, r, width=w * 0.9, yerr=e, capsize=2, label=c)
         ax.plot(xs, p95, "k_", ms=10)
@@ -238,7 +239,8 @@ def plot_force(metrics: dict, out_dir: Path, tag: str = "") -> list[str]:
     parts = ["shared", "private", "independent"]
     bottom = np.zeros(2)
     for part in parts:
-        vals = [s["all"]["variance_partition"][pop][part]["mean"] for pop in ("D1", "D2")]
+        ctx0 = contexts[0]
+        vals = [s[ctx0]["variance_partition"][pop][part]["mean"] for pop in ("D1", "D2")]
         ax.bar(["D1", "D2"], vals, bottom=bottom, label=part)
         bottom += vals
     ax.set_ylabel("fraction of variance")

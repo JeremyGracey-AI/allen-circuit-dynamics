@@ -293,14 +293,21 @@ def summarize_context(runs: list[dict]) -> dict:
         "lag_peak_bins": {},
         "lag_peak_above_null_frac": {},
     }
-    for k in runs[0]["decoding"]:
+
+    def keys_of(field):
+        seen: dict[str, None] = {}
+        for r in runs:
+            seen.update(dict.fromkeys(r[field]))
+        return list(seen)
+
+    for k in keys_of("decoding"):
         out["decoding_r2"][k] = _ms(
             [r["decoding"][k]["r2_mean"] for r in runs if k in r["decoding"]]
         )
         out["decoding_null_p95"][k] = _ms(
             [r["decoding"][k]["null_r2_p95"] for r in runs if k in r["decoding"]]
         )
-    for k in runs[0]["decoding_motion_regressed"]:
+    for k in keys_of("decoding_motion_regressed"):
         out["decoding_motion_regressed_r2"][k] = _ms(
             [
                 r["decoding_motion_regressed"][k]["r2_mean"]
@@ -308,7 +315,7 @@ def summarize_context(runs: list[dict]) -> dict:
                 if k in r["decoding_motion_regressed"]
             ]
         )
-    for k in runs[0]["lag_profile"]:
+    for k in keys_of("lag_profile"):
         out["lag_peak_bins"][k] = _ms(
             [r["lag_profile"][k]["peak_lag_bins"] for r in runs if k in r["lag_profile"]]
         )
@@ -317,7 +324,9 @@ def summarize_context(runs: list[dict]) -> dict:
         )
     out["lag_profile_mean"] = {
         k: {
-            "lags_bins": runs[0]["lag_profile"][k]["lags_bins"],
+            "lags_bins": next(
+                r["lag_profile"][k]["lags_bins"] for r in runs if k in r["lag_profile"]
+            ),
             "r2": np.mean(
                 [r["lag_profile"][k]["r2"] for r in runs if k in r["lag_profile"]], axis=0
             ).tolist(),
@@ -325,7 +334,7 @@ def summarize_context(runs: list[dict]) -> dict:
                 [r["lag_profile"][k]["null_p95"] for r in runs if k in r["lag_profile"]], axis=0
             ).tolist(),
         }
-        for k in runs[0]["lag_profile"]
+        for k in keys_of("lag_profile")
     }
     out["rrr_r2_by_rank"] = {
         d: {
