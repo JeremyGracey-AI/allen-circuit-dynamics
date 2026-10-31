@@ -21,7 +21,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "hypothesis>=6"]
-allen = ["allensdk>=2.16", "pandas<2.1", "numpy<2", "pynwb>=2.3,<2.6", "hdmf>=3.5,<3.14"]
+allen = [
+  "allensdk>=2.16", "pandas<2.1", "numpy<2", "pynwb>=2.3,<2.6", "hdmf>=3.5,<3.14",
+  # Seen on WSL: uv resolved boto3 0.0.3 -> botocore 0.76 -> six 1.7.3 (2014), and dateutil then
+  # failed on six.raise_from inside the Mouse Connectivity unionize reader. Keep these modern.
+  "boto3>=1.17", "six>=1.16", "python-dateutil>=2.8.2",
+]
 
 [project.scripts]
 acd = "allen_circuit_dynamics.cli:main"

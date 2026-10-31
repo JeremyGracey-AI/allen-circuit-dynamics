@@ -77,29 +77,6 @@ PY
   # shellcheck disable=SC2086
   .venv-allen/bin/acd fetch --session "$SESSION" --areas $AREAS --bin 0.05 --stimulus natural_movie_one \
       --cache data/ecephys_cache --out data/ecephys
-  PAIR_NPZ=$(ls -t data/ecephys/${SESSION}_VIS*_VIS*.npz | head -1)
-  echo "experiment-1 pair file: $PAIR_NPZ"
-
-  echo "== connectivity matrix from the Mouse Connectivity Atlas =="
-  .venv-allen/bin/python - "$SESSION" <<'PY'
-import sys
-from pathlib import Path
-import numpy as np
-from allen_circuit_dynamics.allen_data import projection_matrix
-sess = sys.argv[1]
-with np.load(f"data/ecephys/{sess}_areas.npz") as z:
-    areas = tuple(str(a) for a in z["area_names"])
-print("areas for connectivity:", areas)
-conn = projection_matrix(areas, Path("data/ecephys_cache"))
-np.save(f"data/conn_{sess}.npy", conn)
-print(f"connectivity matrix saved -> data/conn_{sess}.npy")
-print(np.round(conn, 2))
-PY
-
-  echo "== experiment 1 (main env) =="
-  .venv/bin/acd latent --data "$PAIR_NPZ" --out "outputs/latent_${SESSION}"
-  echo "== experiment 2 (main env) =="
-  .venv/bin/acd coupling --data "data/ecephys/${SESSION}_areas.npz" --conn "data/conn_${SESSION}.npy" \
-      --out "outputs/coupling_${SESSION}"
+  SESSION="$SESSION" bash scripts/run_experiments.sh
 fi
 echo "done."
