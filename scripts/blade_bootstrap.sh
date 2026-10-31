@@ -34,7 +34,9 @@ if [[ "${1:-}" == "--fetch" ]]; then
   # Visual Coding Neuropixels, Brain Observatory 1.1 stimulus set.
   # 715093703 has probes in VISp, VISl, VISal, VISpm, VISam, VISrl.
   SESSION="${SESSION:-715093703}"
-  AREAS="${AREAS:-VISp VISl VISal VISpm VISam VISrl}"
+  # Areas are chosen from the session itself (top visual areas by QC-passing unit count) unless
+  # AREAS is set. The two best-populated become Experiment 1's pair; all become Experiment 2's areas.
+  AREAS="${AREAS:-}"
   # allensdk streams the 2.9 GB NWB through api.brain-map.org with a 1200 s timeout and no resume,
   # and on a failed fetch its cache DELETES whatever is at the cache path. So the resumable curl
   # download lives in data/nwb/ (never touched by allensdk) and is copied into the cache path
@@ -71,27 +73,33 @@ with pynwb.NWBHDF5IO(sys.argv[1], "r", load_namespaces=True) as io:
 print(f"NWB opens: pynwb {pynwb.__version__}, hdmf {hdmf.__version__}, session {f.identifier}")
 PY
 
-  echo "== building session tables / binning (areas: $AREAS) =="
+  echo "== building session tables / binning (areas: ${AREAS:-auto}) =="
   # shellcheck disable=SC2086
   .venv-allen/bin/acd fetch --session "$SESSION" --areas $AREAS --bin 0.05 --stimulus natural_movie_one \
       --cache data/ecephys_cache --out data/ecephys
+  PAIR_NPZ=$(ls -t data/ecephys/${SESSION}_VIS*_VIS*.npz | head -1)
+  echo "experiment-1 pair file: $PAIR_NPZ"
 
   echo "== connectivity matrix from the Mouse Connectivity Atlas =="
-  .venv-allen/bin/python - <<'PY'
+  .venv-allen/bin/python - "$SESSION" <<'PY'
+import sys
 from pathlib import Path
 import numpy as np
 from allen_circuit_dynamics.allen_data import projection_matrix
-areas = tuple("VISp VISl VISal VISpm VISam VISrl".split())
+sess = sys.argv[1]
+with np.load(f"data/ecephys/{sess}_areas.npz") as z:
+    areas = tuple(str(a) for a in z["area_names"])
+print("areas for connectivity:", areas)
 conn = projection_matrix(areas, Path("data/ecephys_cache"))
-np.save("data/conn_VIS6.npy", conn)
-print("connectivity matrix saved -> data/conn_VIS6.npy")
+np.save(f"data/conn_{sess}.npy", conn)
+print(f"connectivity matrix saved -> data/conn_{sess}.npy")
 print(np.round(conn, 2))
 PY
 
   echo "== experiment 1 (main env) =="
-  .venv/bin/acd latent --data "data/ecephys/${SESSION}_VISp_VISl.npz" --out "outputs/latent_${SESSION}"
+  .venv/bin/acd latent --data "$PAIR_NPZ" --out "outputs/latent_${SESSION}"
   echo "== experiment 2 (main env) =="
-  .venv/bin/acd coupling --data "data/ecephys/${SESSION}_areas.npz" --conn data/conn_VIS6.npy \
+  .venv/bin/acd coupling --data "data/ecephys/${SESSION}_areas.npz" --conn "data/conn_${SESSION}.npy" \
       --out "outputs/coupling_${SESSION}"
 fi
 echo "done."

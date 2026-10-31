@@ -108,6 +108,8 @@ def cmd_fetch(args: argparse.Namespace) -> int:
     cfg = FetchConfig(
         session_id=args.session,
         areas=tuple(args.areas),
+        min_units=args.min_units,
+        max_areas=args.max_areas,
         bin_s=args.bin,
         cache_dir=Path(args.cache),
         stimulus=args.stimulus,
@@ -159,8 +161,11 @@ def main(argv: list[str] | None = None) -> int:
     f = sub.add_parser("fetch", help="pull one Allen Neuropixels session (needs allensdk)")
     f.add_argument("--session", type=int, required=True)
     f.add_argument(
-        "--areas", nargs="+", required=True, help="two or more area acronyms, e.g. VISp VISl"
+        "--areas", nargs="*", default=[],
+        help="visual areas to use; default: top areas by QC-passing unit count",
     )
+    f.add_argument("--min-units", type=int, default=15, help="min QC-passing units per area")
+    f.add_argument("--max-areas", type=int, default=6, help="max areas when auto-selecting")
     f.add_argument("--bin", type=float, default=0.05)
     f.add_argument("--stimulus", default="natural_movie_one")
     f.add_argument("--cache", default="data/ecephys_cache")

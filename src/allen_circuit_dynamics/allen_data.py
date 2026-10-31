@@ -33,7 +33,9 @@ from .preprocess import PreprocessConfig, apply_scaler, filter_units, fit_scaler
 @dataclass(frozen=True)
 class FetchConfig:
     session_id: int
-    areas: tuple[str, ...] = ("VISp", "VISl")
+    areas: tuple[str, ...] = ()  # empty = auto: top max_areas visual areas by QC-passing unit count
+    min_units: int = 15
+    max_areas: int = 6
     bin_s: float = 0.05
     stimulus: str = "natural_movie_one"
     cache_dir: Path = Path("data/ecephys_cache")
@@ -113,13 +115,29 @@ def fetch_session(cfg: FetchConfig, out_dir: Path) -> tuple[PopulationDataset, P
     speed = _bin_speed(session.running_speed, window_edges)
     keep_all = np.isfinite(speed)
 
+    # Which areas does this session actually have? Keep cortical visual areas with enough
+    # QC-passing units; honour a user-supplied list but drop (and report) members that fail.
+    counts = good["ecephys_structure_acronym"].value_counts()
+    available = {str(a): int(n) for a, n in counts.items() if str(a).startswith("VIS")}
+    ranked = sorted(available.items(), key=lambda kv: -kv[1])
+    print("QC-passing units by visual area:", dict(ranked))
+    if cfg.areas:
+        chosen = [a for a in cfg.areas if available.get(a, 0) >= cfg.min_units]
+        skipped = [a for a in cfg.areas if a not in chosen]
+        if skipped:
+            print(f"skipping areas with < {cfg.min_units} QC-passing units: {skipped}")
+    else:
+        chosen = [a for a, n in ranked if n >= cfg.min_units][: cfg.max_areas]
+    if len(chosen) < 2:
+        raise ValueError(
+            f"Session {cfg.session_id}: fewer than two visual areas with >= {cfg.min_units} "
+            f"QC-passing units. Available: {available}"
+        )
+    print("using areas:", chosen)
+
     per_area: dict[str, np.ndarray] = {}
-    for area in cfg.areas:
+    for area in chosen:
         uids = good[good["ecephys_structure_acronym"] == area].index.to_numpy()
-        if uids.size < 5:
-            raise ValueError(
-                f"Area {area}: only {uids.size} units pass QC in session {cfg.session_id}."
-            )
         per_area[area] = _bin_spikes(session.spike_times, uids, window_edges)
 
     # blocks: contiguous chunks across the kept bins
@@ -140,7 +158,7 @@ def fetch_session(cfg: FetchConfig, out_dir: Path) -> tuple[PopulationDataset, P
         "n_bins_dropped_missing_speed": int((~keep_all).sum()),
     }
 
-    a1, a2 = cfg.areas[0], cfg.areas[1]
+    a1, a2 = chosen[0], chosen[1]
     ds = PopulationDataset(
         x1=per_area[a1][kept],
         x2=per_area[a2][kept],
