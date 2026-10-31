@@ -47,6 +47,14 @@ if [[ "${1:-}" == "--fetch" ]]; then
     curl -L -C - --retry 20 --retry-delay 5 --retry-all-errors -o "$NWB" "$S3_URL"
   fi
   ls -lh "$NWB"
+  # Fail fast if the NWB can't be opened with the pinned pynwb/hdmf, instead of letting the
+  # allensdk cache misread a reader error as a missing file and start a 3-hour re-download.
+  .venv-allen/bin/python - "$NWB" <<'PY'
+import sys, pynwb, hdmf
+with pynwb.NWBHDF5IO(sys.argv[1], "r", load_namespaces=True) as io:
+    f = io.read()
+print(f"NWB opens: pynwb {pynwb.__version__}, hdmf {hdmf.__version__}, session {f.identifier}")
+PY
 
   echo "== building session tables / binning (areas: $AREAS) =="
   # shellcheck disable=SC2086

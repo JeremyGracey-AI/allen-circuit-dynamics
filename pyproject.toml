@@ -21,7 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "hypothesis>=6"]
-allen = ["allensdk>=2.16", "pandas<2.1", "numpy<2"]
+allen = ["allensdk>=2.16", "pandas<2.1", "numpy<2", "pynwb>=2.3,<2.6", "hdmf>=3.5,<3.14"]
 
 [project.scripts]
 acd = "allen_circuit_dynamics.cli:main"
