@@ -173,7 +173,9 @@ def fetch_session(cfg: FetchConfig, out_dir: Path) -> tuple[PopulationDataset, P
         },
     )
     out_dir.mkdir(parents=True, exist_ok=True)
-    stem = out_dir / f"{cfg.session_id}_{a1}_{a2}"
+    # 50 ms is the default and keeps the original file names; other bin sizes get a suffix.
+    tag = "" if abs(cfg.bin_s - 0.05) < 1e-9 else f"_b{round(cfg.bin_s * 1000)}ms"
+    stem = out_dir / f"{cfg.session_id}_{a1}_{a2}{tag}"
     saved = ds.save(stem)
     ds.meta["saved_to"] = str(saved)
     with open(stem.with_suffix(".meta.json"), "w") as fh:
@@ -193,7 +195,7 @@ def fetch_session(cfg: FetchConfig, out_dir: Path) -> tuple[PopulationDataset, P
         lat.append((x - x.mean(0)) @ vt[:d].T)
         dims.append(d)
         names.append(area)
-    areas_npz = out_dir / f"{cfg.session_id}_areas.npz"
+    areas_npz = out_dir / f"{cfg.session_id}_areas{tag}.npz"
     np.savez_compressed(
         areas_npz,
         s=np.hstack(lat),
