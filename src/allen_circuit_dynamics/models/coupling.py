@@ -9,10 +9,15 @@ where ``A`` is partitioned into area-by-area coupling blocks. The anatomical
 prior enters as a penalty on each block proportional to how *weak* the
 projection between those areas is in the connectivity atlas::
 
-    penalty(A) = lambda * sum_{a,b} (1 - conn[a, b]) * ||A_block(a,b)||_F^2
+    penalty(A) = lambda * c * sum_{a,b} (1 - conn[a, b]) * ||A_block(a,b)||_F^2
 
 so blocks between areas with no projection are pushed toward zero and blocks
-between strongly connected areas are left nearly free. ``conn`` is a
+between strongly connected areas are left nearly free. ``c = trace(X'X) / K``
+(the mean diagonal of the data Gram matrix) makes ``lambda`` dimensionless:
+``lambda = 1`` means the penalty on a fully unconnected block equals the
+typical data curvature, whatever the number of bins or the latent scale.
+Without ``c`` the same ``lambda`` is ten times weaker on a session with ten
+times more bins, which is exactly what happened on the first real run. ``conn`` is a
 row-normalised projection-density matrix in ``[0, 1]`` (diagonal = 1, since
 within-area recurrence is always allowed).
 
@@ -38,8 +43,8 @@ from scipy import linalg
 class CoupledLDS:
     area_dims: list[int]
     conn: np.ndarray | None = None
-    lam: float = 10.0
-    ridge: float = 1.0
+    lam: float = 0.1  # dimensionless; see module docstring
+    ridge: float = 1e-3  # dimensionless baseline ridge on every entry of A
 
     A_: np.ndarray | None = None
     b_: np.ndarray | None = None
@@ -73,9 +78,11 @@ class CoupledLDS:
         x, y = _pairs(s, blocks)
         self.b_ = y.mean(0) - x.mean(0)  # intercept absorbs the drift
         xc, yc = x - x.mean(0), y - y.mean(0)
-        pen = self._penalty_matrix()
         xtx = xc.T @ xc
         xty = xc.T @ yc
+        # Scale-free penalty: express ridge and lambda relative to the mean data curvature.
+        scale = float(np.trace(xtx)) / self.k
+        pen = self._penalty_matrix() * scale
         # Column j of A has its own penalty diag; solve each column separately.
         A = np.zeros((self.k, self.k))
         for j in range(self.k):

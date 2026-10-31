@@ -142,8 +142,9 @@ def run_latent_experiment(
 
 @dataclass(frozen=True)
 class CouplingConfig:
-    lam_grid: tuple[float, ...] = (0.0, 10.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0)
-    ridge: float = 1.0
+    # dimensionless (relative to the data curvature; see models.coupling)
+    lam_grid: tuple[float, ...] = (0.0, 0.01, 0.03, 0.1, 0.3, 1.0, 3.0, 10.0)
+    ridge: float = 1e-3
     n_splits: int = 5
     n_shuffles: int = 20
     seed: int = 0

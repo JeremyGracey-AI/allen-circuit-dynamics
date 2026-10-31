@@ -36,7 +36,7 @@ def test_coupling_recovers_planted_structure():
         syn["conn"],
         syn["blocks"],
         syn["area_names"],
-        CouplingConfig(n_shuffles=5, lam_grid=(0.0, 1000.0)),
+        CouplingConfig(n_shuffles=5, lam_grid=(0.0, 0.3)),
     )
     assert m["corr_blocknorm_vs_connectivity_offdiag"] > 0.8
     assert m["unconstrained_r2"] > 0.5
@@ -45,7 +45,7 @@ def test_coupling_recovers_planted_structure():
 def test_coupling_penalty_shrinks_unconnected_blocks():
     syn = make_synthetic_coupled(CoupledSynthConfig(seed=5))
     free = CoupledLDS(syn["area_dims"], conn=None, lam=0.0).fit(syn["s"], syn["blocks"])
-    pen = CoupledLDS(syn["area_dims"], conn=syn["conn"], lam=1e4).fit(syn["s"], syn["blocks"])
+    pen = CoupledLDS(syn["area_dims"], conn=syn["conn"], lam=10.0).fit(syn["s"], syn["blocks"])
     off = ~np.eye(len(syn["area_dims"]), dtype=bool)
     zero_blocks = (syn["conn"] == 0) & off
     assert zero_blocks.any()
