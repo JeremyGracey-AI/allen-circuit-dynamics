@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Run inside WSL2 Ubuntu-22.04 on the Blade 18 (or any Linux box).
-#   bash scripts/blade_bootstrap.sh            # main env + package + demo + tests
-#   bash scripts/blade_bootstrap.sh --fetch    # also pull one Neuropixels session (~2 GB) and run both experiments
+# One-shot setup on a fresh Linux box (tested on WSL2 Ubuntu 22.04).
+#   bash scripts/bootstrap_linux.sh            # main env + package + demo + tests
+#   bash scripts/bootstrap_linux.sh --fetch    # also pull one Neuropixels session (~2.7 GB) and run experiments 1-2
 #
 # allensdk pins old scipy/pandas/numpy, so it lives in its OWN venv (.venv-allen, Python 3.10) and is used
 # only for `acd fetch` and the connectivity matrix. The main env (.venv) runs the experiments on the .npz files.
@@ -14,8 +14,8 @@ if ! command -v uv >/dev/null 2>&1; then
   curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 export PATH="$HOME/.local/bin:$PATH"
-# A sourced ROS 2 setup puts /opt/ros/*/site-packages on PYTHONPATH, which leaks ROS pytest plugins
-# (launch_testing -> lark) into our venvs. Our venvs are self-contained, so drop it.
+# Anything on PYTHONPATH (a sourced ROS 2 setup, for one) leaks foreign pytest plugins into the venvs.
+# The venvs are self-contained, so drop it.
 unset PYTHONPATH
 
 echo "== main env (.venv) =="

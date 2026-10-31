@@ -1,3 +1,4 @@
+import pytest
 
 from allen_circuit_dynamics.experiments_force import ForceConfig, lag_profile, run_force_experiment
 from allen_circuit_dynamics.synth import ForceSynthConfig, make_synthetic_force
@@ -11,8 +12,9 @@ def test_lag_profile_recovers_planted_lead():
     assert prof["peak_above_null"]
 
 
+@pytest.mark.slow
 def test_force_experiment_count_matches_and_finds_shared():
-    ds, truth = make_synthetic_force(ForceSynthConfig(seed=2, n_bins=3000))
+    ds, _truth = make_synthetic_force(ForceSynthConfig(seed=2, n_bins=3000))
     cfg = ForceConfig(
         n_draws=2,
         contexts=("all", "cued"),

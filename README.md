@@ -1,8 +1,28 @@
 # allen-circuit-dynamics
 
+[![CI](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/actions/workflows/ci.yml/badge.svg)](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/allen-circuit-dynamics.svg)](https://pypi.org/project/allen-circuit-dynamics/)
+[![Python](https://img.shields.io/pypi/pyversions/allen-circuit-dynamics.svg)](https://pypi.org/project/allen-circuit-dynamics/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Latent-variable models of simultaneously recorded neural populations, run on
 open data from the Allen Institute and its collaborators, with a pipeline that
-runs end-to-end on synthetic data in under a minute.
+runs end-to-end on synthetic data in under a minute. Independent work; not
+affiliated with or endorsed by the Allen Institute.
+
+```bash
+pip install allen-circuit-dynamics
+acd demo --out outputs/demo          # both Neuropixels experiments on synthetic data, ~30 s, no downloads
+```
+
+```python
+from allen_circuit_dynamics import PopulationDataset, SharedPrivateFA, run_latent_experiment
+
+ds = PopulationDataset.load("my_session.npz")          # x1, x2, behavior, blocks, bin_s
+metrics = run_latent_experiment(ds)                    # held-out selection, partition, decoding
+model = SharedPrivateFA(d_shared=3, d_private=(2, 2)).fit(ds.x1, ds.x2)
+latents = model.transform(ds.x1, ds.x2)                # {"shared": ..., "private1": ..., "private2": ...}
+```
 
 One model sits underneath: a population's activity is a few shared latents,
 a few private latents, and per-neuron noise, possibly with linear dynamics on
@@ -64,7 +84,7 @@ linear-Gaussian model selects more dimensions than were planted (6 shared,
 directions; in the lower-gain regime the test suite uses, held-out likelihood
 selects the planted 3 exactly. See Limits.
 
-![decoding](outputs/demo/latent/decoding_by_subspace.png)
+![decoding](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/demo/latent/decoding_by_subspace.png)
 
 **Real session 715093703, VISrl (76 units) ↔ VISp (60 units).** Held-out
 likelihood selects 6 shared and 4 private dimensions. Variance is mostly
@@ -81,7 +101,7 @@ common to both areas (locomotion / arousal, strongest in RL), not fast
 inter-area communication. That is the expected place for a static model to
 land and the reason DLAG-style delays are the next comparison.
 
-![real decoding](outputs/latent_715093703/decoding_by_subspace.png)
+![real decoding](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/latent_715093703/decoding_by_subspace.png)
 
 ## Experiment 2 — connectivity-constrained linear dynamics
 
@@ -101,7 +121,7 @@ doesn't, that's the finding. On the synthetic demo (six areas, eight latents
 each, 1 200 bins, a planted sparse projection matrix) the two curves separate
 at large λ and the fitted block norms correlate with the planted connectivity.
 
-![coupling](outputs/demo/coupling/coupling_vs_lambda.png)
+![coupling](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/demo/coupling/coupling_vs_lambda.png)
 
 **Real session 715093703, five visual areas.** The unconstrained one-step
 model explains R² 0.41 of the next bin's latents. The atlas prior does not
@@ -115,7 +135,7 @@ projection density at r = 0.38 over 20 blocks, permutation p = 0.075 (null
 95th percentile 0.42). 77% of ‖A‖² sits in the within-area blocks. On this
 session, then, the answer to question 2 is no at 50 ms.
 
-![real coupling](outputs/coupling_715093703/coupling_vs_lambda.png)
+![real coupling](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/coupling_715093703/coupling_vs_lambda.png)
 
 Two things the first real run taught, both now fixed in the code: the penalty
 was in absolute units and was swamped by a 10× longer recording, so λ is now
@@ -126,7 +146,7 @@ it is now computed from the λ = 0 fit.
 
 ## Experiment 3 — D1 vs D2 striatal neurons, shared / private covariance, and the lever
 
-Pre-registered in [`docs/experiment3_preregistration.md`](docs/experiment3_preregistration.md)
+Pre-registered in [`docs/experiment3_preregistration.md`](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/docs/experiment3_preregistration.md)
 (commit `b1676da`) before any model was fit; the thresholds below are the ones
 written there. Data: Klee et al. (2026), six mice, two-photon calcium imaging
 of anterior dorsal striatum at 30 fps, every ROI labelled D1-SPN or D2-SPN, a
@@ -162,8 +182,8 @@ the near-zero mice unchanged, so in the one mouse with strong decoding about
 half of the shared–lever relation is movement of the animal rather than the
 lever as such.
 
-![JK238 decoding](outputs/force_klee/JK238/force_decoding.png)
-![JK238 lag profile](outputs/force_klee/JK238/force_lag_profile.png)
+![JK238 decoding](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_decoding.png)
+![JK238 lag profile](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_lag_profile.png)
 
 **Reading.** The covariance structure is the robust finding: D1 and D2 share
 one common subspace in every animal and keep almost nothing to themselves,
@@ -198,7 +218,7 @@ uv venv --python 3.10 .venv-allen && uv pip install --python .venv-allen/bin/pyt
 SESSION=715093703 bash scripts/run_experiments.sh                    # connectivity matrix + both experiments
 ```
 
-`scripts/blade_bootstrap.sh --fetch` does all of the above on a fresh WSL box,
+`scripts/bootstrap_linux.sh --fetch` does all of the above on a fresh Linux or WSL box,
 including a parallel ranged download of the 2.7 GB NWB from Allen's public S3
 bucket (`scripts/pdl.sh`; allensdk's own download times out on slow links).
 
@@ -244,7 +264,7 @@ src/allen_circuit_dynamics/
   cli.py              acd demo | fetch | latent | coupling | force
 docs/experiment3_preregistration.md   hypotheses, grid, controls, decision rules — committed before the run
 tests/                19 tests, ~2 min, synthetic only
-scripts/blade_bootstrap.sh
+scripts/bootstrap_linux.sh
 ```
 
 ## Limits, stated up front

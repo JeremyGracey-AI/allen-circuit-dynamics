@@ -18,10 +18,7 @@ def lag_pairs(blocks: np.ndarray, lag: int) -> tuple[np.ndarray, np.ndarray]:
     n = blocks.shape[0]
     if abs(lag) >= n:
         raise ValueError(f"lag {lag} exceeds the series length {n}.")
-    if lag >= 0:
-        i = np.arange(0, n - lag)
-    else:
-        i = np.arange(-lag, n)
+    i = np.arange(0, n - lag) if lag >= 0 else np.arange(-lag, n)
     j = i + lag
     keep = blocks[i] == blocks[j]
     return i[keep], j[keep]

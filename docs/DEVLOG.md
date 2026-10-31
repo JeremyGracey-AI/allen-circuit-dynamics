@@ -1,10 +1,12 @@
-# RESTART — allen-circuit-dynamics
+# Development log
 
-State as of 2026-10-31:
+Decisions and state, newest first. Kept so the next person (or the author in a month) knows why things are the way they are.
+
+## 2026-10-31
 
 - Experiment 3 (D1/D2 striatum + lever, Klee et al. 2026, six mice) built, pre-registered, run in the cloud, written up; results under `outputs/force_klee/`, verdict table in README. Robust finding: equal shared fraction for D1 and D2 in every mouse, private 1–5%. Lever decoding substantive in 2 of 6 mice; H3 (neural lead) not supported at 30 fps.
-- First real-session run done on the Blade 18 (WSL2 Ubuntu-22.04): session 715093703, areas VISrl/VISp/VISpm/VISl/VISam, 12,009 bins. Results are in the README (one paragraph per experiment).
-- Repo is public. 14 tests pass; `acd demo` reproduces the synthetic reference run in `outputs/demo/`.
+- First real-session run (WSL2 Ubuntu 22.04): session 715093703, areas VISrl/VISp/VISpm/VISl/VISam, 12,009 bins. Results are in the README (one paragraph per experiment).
+- 19 tests; `acd demo` reproduces the synthetic reference run in `outputs/demo/`.
 - Experiment 2's λ is now dimensionless (penalty scaled to the data curvature) after the first real run showed the old absolute λ grid did nothing on a 12k-bin session.
 
 ## Next

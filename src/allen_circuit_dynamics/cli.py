@@ -1,9 +1,10 @@
 """Command-line entry points.
 
-acd demo    --out outputs/demo            # synthetic, both experiments, no data needed
-acd fetch   --session 715093703 --areas VISp VISl --out data/ecephys   # needs allensdk
-acd latent  --data data/ecephys/715093703_VISp_VISl.npz --out outputs/latent
-acd coupling --data data/ecephys/715093703_areas.npz --conn data/conn.npy --out outputs/coupling
+acd demo     --out outputs/demo                       # synthetic, experiments 1-2, no data needed
+acd fetch    --session 715093703 --out data/ecephys    # needs the allen extra (allensdk)
+acd latent   --data data/ecephys/<session>_<a1>_<a2>.npz --out outputs/latent
+acd coupling --data data/ecephys/<s>_areas.npz --conn data/conn_<s>.npy --out outputs/coupling
+acd force    --mat Switching_2p_Struc_Main.mat --mouse all --out outputs/force_klee   # experiment 3
 """
 
 from __future__ import annotations
@@ -207,6 +208,9 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="acd", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    from . import __version__
+
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     d = sub.add_parser("demo", help="run both experiments on synthetic data")

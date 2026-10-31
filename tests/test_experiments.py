@@ -1,6 +1,7 @@
 import json
 
 import numpy as np
+import pytest
 
 from allen_circuit_dynamics.cli import main
 from allen_circuit_dynamics.experiments import (
@@ -59,6 +60,7 @@ def test_shuffle_keeps_diagonal(rng):
     assert sorted(s[~np.eye(3, dtype=bool)]) == sorted(c[~np.eye(3, dtype=bool)])
 
 
+@pytest.mark.slow
 def test_cli_demo_writes_metrics_and_figures(tmp_path, monkeypatch):
     # keep it fast: shrink the grids through the config defaults is not exposed, so run as-is
     # on a small seed; the demo is the integration test.

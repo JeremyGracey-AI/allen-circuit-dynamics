@@ -163,11 +163,11 @@ class SharedPrivateFA:
     @staticmethod
     def _loglik(xc: np.ndarray, L: np.ndarray, psi: np.ndarray) -> float:
         """Mean Gaussian log-likelihood per bin, via the matrix determinant lemma."""
-        n, d = xc.shape
+        _n, d = xc.shape
         k = L.shape[1]
         lt_psi_inv = L.T / psi
         a = np.eye(k) + lt_psi_inv @ L
-        sign, logdet_a = np.linalg.slogdet(a)
+        _sign, logdet_a = np.linalg.slogdet(a)
         logdet_c = logdet_a + np.sum(np.log(psi))
         # x^T C^{-1} x via Woodbury: C^{-1} = Psi^{-1} - Psi^{-1} L A^{-1} L^T Psi^{-1}
         y = xc / np.sqrt(psi)

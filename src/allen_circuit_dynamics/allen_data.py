@@ -190,7 +190,7 @@ def fetch_session(cfg: FetchConfig, out_dir: Path) -> tuple[PopulationDataset, P
         x, _ = filter_units(counts[kept], cfg.bin_s, pcfg.min_rate_hz)
         x, _ = transform_counts(x, pcfg)
         x = apply_scaler(x, fit_scaler(x))
-        u, s, vt = np.linalg.svd(x - x.mean(0), full_matrices=False)
+        _u, _s, vt = np.linalg.svd(x - x.mean(0), full_matrices=False)
         d = min(cfg.area_latent_dims, vt.shape[0])
         lat.append((x - x.mean(0)) @ vt[:d].T)
         dims.append(d)

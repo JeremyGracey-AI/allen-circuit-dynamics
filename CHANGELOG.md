@@ -4,6 +4,7 @@
 - Experiment 3: D1 vs D2 striatal neurons, shared / private covariance and the lever, on the public Klee et al. (2026) two-photon dataset (six mice). Pre-registered (`docs/experiment3_preregistration.md`, `b1676da`) before the run; verdicts and effect sizes in the README. Loader (`klee_data.py`), count-matched draws, three-way partition, motion-regressed decoding, lag profile, `acd force`, `scripts/evaluate_prereg.py`.
 - `PopulationDataset.extras` for per-bin covariates; `lagged.py` block-safe lag pairing and within-block shift null.
 - README reframed around three output contracts (observations / state / action).
+- Packaging: public API re-exported from `allen_circuit_dynamics`, `py.typed`, PyPI metadata and classifiers, `CITATION.cff`, `CONTRIBUTING.md`, `docs/DEVLOG.md` (was `RESTART.md`), `scripts/bootstrap_linux.sh` (was `blade_bootstrap.sh`), release workflow with PyPI trusted publishing.
 
 ## 0.1.1 — 2026-10-30
 - First real-session run (Visual Coding Neuropixels 715093703); results in README.

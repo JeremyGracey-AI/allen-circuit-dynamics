@@ -4,12 +4,31 @@ build-backend = "hatchling.build"
 
 [project]
 name = "allen-circuit-dynamics"
-version = "0.1.0"
-description = "Shared vs. private population structure and connectivity-constrained dynamics on Allen Institute open Neuropixels data."
+version = "0.2.0"
+description = "Shared/private latent-variable models and connectivity-constrained dynamics for simultaneously recorded neural populations, run on open Allen Institute data."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [{ name = "Jeremy Gracey" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Jeremy Gracey", email = "jeremy.a.gracey@gmail.com" }]
+keywords = [
+  "neuroscience", "factor-analysis", "latent-variable-models", "neuropixels", "calcium-imaging",
+  "communication-subspace", "allen-brain-observatory", "linear-dynamical-systems",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Typing :: Typed",
+]
 dependencies = [
   "numpy>=1.23",
   "scipy>=1.9",
@@ -29,19 +48,33 @@ allen = [
   "boto3>=1.17", "six>=1.16", "python-dateutil>=2.8.2",
 ]
 
+[project.urls]
+Homepage = "https://github.com/JeremyGracey-AI/allen-circuit-dynamics"
+Repository = "https://github.com/JeremyGracey-AI/allen-circuit-dynamics"
+Issues = "https://github.com/JeremyGracey-AI/allen-circuit-dynamics/issues"
+Changelog = "https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/CHANGELOG.md"
+
 [project.scripts]
 acd = "allen_circuit_dynamics.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/allen_circuit_dynamics"]
 
+[tool.hatch.build.targets.sdist]
+include = ["src/", "tests/", "pyproject.toml", "README.md", "CHANGELOG.md", "LICENSE", "CITATION.cff"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "NPY"]
+select = ["E", "F", "I", "B", "UP", "NPY", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # unicode in strings/docstrings (R², λ, −) is intentional
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -p no:launch_testing -p no:launch_pytest"
+markers = ["slow: end-to-end synthetic runs (deselect with -m 'not slow')"]

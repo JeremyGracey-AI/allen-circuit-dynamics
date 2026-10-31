@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "allen-circuit-dynamics: shared/private latent-variable models and connectivity-constrained dynamics for simultaneously recorded neural populations"
+type: software
+authors:
+  - family-names: Gracey
+    given-names: Jeremy
+    email: jeremy.a.gracey@gmail.com
+version: 0.2.0
+date-released: 2026-10-31
+license: MIT
+repository-code: "https://github.com/JeremyGracey-AI/allen-circuit-dynamics"
+keywords:
+  - neuroscience
+  - factor analysis
+  - latent variable models
+  - Neuropixels
+  - calcium imaging
+  - communication subspace
+references:
+  - type: article
+    title: "Cortical areas interact through a communication subspace"
+    authors:
+      - family-names: Semedo
+        given-names: João D.
+      - family-names: Zandvakili
+        given-names: Amin
+      - family-names: Machens
+        given-names: Christian K.
+      - family-names: Yu
+        given-names: Byron M.
+      - family-names: Kohn
+        given-names: Adam
+    journal: Neuron
+    year: 2019
+  - type: article
+    title: "Survey of spiking in the mouse visual system reveals functional hierarchy"
+    authors:
+      - family-names: Siegle
+        given-names: Joshua H.
+    journal: Nature
+    year: 2021
+    notes: "Visual Coding Neuropixels dataset (Experiments 1 and 2)"
+  - type: article
+    title: "Shared striatal neurons exhibit context-specific dynamics for internally and externally driven actions"
+    authors:
+      - family-names: Klee
+        given-names: Jan Lukas
+      - family-names: Fernando-Peiris
+        given-names: Sulekh
+      - family-names: Athalye
+        given-names: Vivek
+      - family-names: Costa
+        given-names: Rui M.
+      - family-names: Peterka
+        given-names: Darcy
+      - family-names: Sippy
+        given-names: Tanya
+    journal: Science Advances
+    year: 2026
+    doi: 10.1126/sciadv.aed9386
+    notes: "Dataset for Experiment 3, Zenodo 10.5281/zenodo.16333867 (CC BY 4.0)"

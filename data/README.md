@@ -7,4 +7,4 @@ Nothing in here is committed except this file.
 - `ecephys/<session>_areas.npz` — per-area PCA latents for Experiment 2.
 - `conn_VIS6.npy` — row-normalised projection-density matrix from the Mouse Connectivity Atlas.
 
-`scripts/blade_bootstrap.sh --fetch` produces all of them.
+`scripts/bootstrap_linux.sh --fetch` produces all of them.

@@ -97,7 +97,7 @@ def dff(
     from scipy.ndimage import gaussian_filter1d
 
     sm = gaussian_filter1d(F, sigma=sigma_frames, axis=0, mode="nearest")
-    w = int(round(window_s * fps))
+    w = round(window_s * fps)
     n = F.shape[0]
     starts = np.arange(0, n, w)
     centres = np.minimum(starts + w / 2, n - 1)
