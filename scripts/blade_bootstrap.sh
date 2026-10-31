@@ -47,10 +47,15 @@ if [[ "${1:-}" == "--fetch" ]]; then
   EXPECTED_BYTES=$(curl -sSI "$S3_URL" | tr -d '\r' | awk 'tolower($1)=="content-length:"{print $2}')
   mkdir -p "$DL_DIR" "$NWB_DIR"
   # Salvage a partial download allensdk's path may hold from an earlier run (it never completes there).
-  if [[ ! -s "$DL" && -s "$NWB" ]]; then mv "$NWB" "$DL"; fi
+  # Leftover single-stream partials can't seed the chunked download; clear them.
+  for f in "$NWB" "$DL"; do
+    if [[ -s "$f" && "$(stat -c %s "$f")" != "$EXPECTED_BYTES" ]]; then rm -f "$f"; fi
+  done
   if [[ ! -s "$DL" || "$(stat -c %s "$DL")" != "$EXPECTED_BYTES" ]]; then
-    echo "== downloading $DL from S3 (expected $EXPECTED_BYTES bytes; resumable — rerun to resume) =="
-    curl -L -C - --retry 20 --retry-delay 5 --retry-all-errors -o "$DL" "$S3_URL"
+    echo "== downloading $DL from S3 (expected $EXPECTED_BYTES bytes; parallel ranged, resumable — rerun to resume) =="
+    # Single-stream throughput to S3 is capped on some links (~200 kB/s per connection); 16 ranged
+    # streams in parallel get the aggregate. Set PDL_PARTS to change the count.
+    bash scripts/pdl.sh "$S3_URL" "$DL" "${PDL_PARTS:-16}"
   fi
   if [[ "$(stat -c %s "$DL")" != "$EXPECTED_BYTES" ]]; then
     echo "download incomplete ($(stat -c %s "$DL") of $EXPECTED_BYTES bytes); rerun to resume"; exit 1
