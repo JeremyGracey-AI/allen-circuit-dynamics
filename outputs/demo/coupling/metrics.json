@@ -1,14 +1,14 @@
 {
   "provenance": {
     "package_version": "0.1.0",
-    "git_sha": "53346e6",
-    "run_at_utc": "2026-10-31T05:32:46+00:00",
+    "git_sha": "e7dd39d",
+    "run_at_utc": "2026-10-31T05:43:18+00:00",
     "python": "3.11.15",
     "platform": "macOS-27.0.1-arm64-arm-64bit",
     "numpy": "2.4.6",
     "scipy": "1.17.1",
     "sklearn": "1.9.1",
-    "config_hash": "995a14c9463c",
+    "config_hash": "cbce1f025f78",
     "data": {
       "source": "synthetic_coupled"
     }
@@ -183,6 +183,9 @@
     ]
   ],
   "corr_blocknorm_vs_connectivity_offdiag": 0.9607135489755572,
+  "corr_permutation_p": 0.0004997501249375312,
+  "corr_null_p95": 0.32009580063294685,
+  "within_area_fraction_of_coupling": 0.8780795293967839,
   "config": {
     "lam_grid": [
       0.0,
@@ -197,6 +200,7 @@
     "ridge": 0.001,
     "n_splits": 5,
     "n_shuffles": 20,
+    "n_perm": 2000,
     "seed": 0
   }
 }

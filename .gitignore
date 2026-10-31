@@ -14,3 +14,5 @@ outputs/*
 !outputs/demo/
 !outputs/demo/**
 .coverage
+!outputs/*_715093703/
+!outputs/*_715093703/**

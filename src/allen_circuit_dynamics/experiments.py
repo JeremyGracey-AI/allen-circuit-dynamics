@@ -147,6 +147,7 @@ class CouplingConfig:
     ridge: float = 1e-3
     n_splits: int = 5
     n_shuffles: int = 20
+    n_perm: int = 2000  # permutations for the block-norm vs connectivity correlation
     seed: int = 0
 
 
@@ -186,11 +187,17 @@ def run_coupling_experiment(
     final = CoupledLDS(area_dims, conn=conn, lam=float(best_lam), ridge=cfg.ridge).fit(s, blocks)
     norms = final.block_norms()
     off = ~np.eye(len(area_dims), dtype=bool)
+    conn_arr = np.asarray(conn, dtype=float)
     corr = (
-        float(np.corrcoef(norms[off], np.asarray(conn)[off])[0, 1])
-        if off.sum() > 2
-        else float("nan")
+        float(np.corrcoef(norms[off], conn_arr[off])[0, 1]) if off.sum() > 2 else float("nan")
     )
+    # Permutation null for that correlation: shuffle the off-diagonal connectivity entries.
+    null = np.array(
+        [np.corrcoef(norms[off], shuffle_conn(conn_arr, rng)[off])[0, 1] for _ in range(cfg.n_perm)]
+    )
+    corr_p = float((np.sum(null >= corr) + 1) / (cfg.n_perm + 1)) if np.isfinite(corr) else 1.0
+    # How much of the fitted dynamics is within-area recurrence vs cross-area coupling?
+    within_frac = float(np.sum(norms[~off] ** 2) / max(np.sum(norms**2), 1e-12))
     return {
         "experiment": "coupling",
         "areas": area_names,
@@ -201,5 +208,8 @@ def run_coupling_experiment(
         "coupling_block_norms": norms.tolist(),
         "connectivity": np.asarray(conn).tolist(),
         "corr_blocknorm_vs_connectivity_offdiag": corr,
+        "corr_permutation_p": corr_p,
+        "corr_null_p95": float(np.percentile(null, 95)),
+        "within_area_fraction_of_coupling": within_frac,
         "config": asdict(cfg),
     }

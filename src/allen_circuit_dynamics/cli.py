@@ -72,7 +72,9 @@ def _summarise_coupling(m: dict) -> str:
         )
     lines.append(
         f"corr(block norm, connectivity) off-diag = "
-        f"{m['corr_blocknorm_vs_connectivity_offdiag']:.3f}"
+        f"{m['corr_blocknorm_vs_connectivity_offdiag']:.3f} "
+        f"(permutation p = {m['corr_permutation_p']:.3f}, null p95 {m['corr_null_p95']:.3f}); "
+        f"within-area share of ||A||² = {m['within_area_fraction_of_coupling']:.2f}"
     )
     return "\n".join(lines)
 

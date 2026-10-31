@@ -23,7 +23,7 @@ uv venv --clear --python 3.11 .venv
 uv pip install --python .venv/bin/python -e ".[dev]"
 
 echo "== smoke: both experiments on synthetic data =="
-.venv/bin/acd demo --out outputs/demo
+.venv/bin/acd demo --out outputs/demo_local   # outputs/demo/ is the committed reference run
 .venv/bin/pytest -q
 
 if [[ "${1:-}" == "--fetch" ]]; then

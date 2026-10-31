@@ -1,15 +1,16 @@
 # RESTART — allen-circuit-dynamics
 
-State as of 2026-10-28 (built in a cloud session, delivered to the Mac Studio):
+State as of 2026-10-30 (evening):
 
-- Pipeline complete; `acd demo` runs both experiments on synthetic data (~30 s); 14 tests pass.
-- No real-data run yet. The Blade 18 (WSL2 Ubuntu-22.04, RTX 5090) is the box for it.
+- First real-session run done on the Blade 18 (WSL2 Ubuntu-22.04): session 715093703, areas VISrl/VISp/VISpm/VISl/VISam, 12,009 bins. Results are in the README (one paragraph per experiment).
+- Repo is public. 14 tests pass; `acd demo` reproduces the synthetic reference run in `outputs/demo/`.
+- Experiment 2's λ is now dimensionless (penalty scaled to the data curvature) after the first real run showed the old absolute λ grid did nothing on a 12k-bin session.
 
-## Next on the Blade
-1. `git clone` this repo into `D:\dev\allen-circuit-dynamics` (Windows) or `~/src/github.com/JeremyGracey-AI/allen-circuit-dynamics` (WSL ext4 — faster).
-2. `bash scripts/blade_bootstrap.sh --fetch` — installs allensdk, pulls session 715093703 (~2 GB), builds the VIS6 connectivity matrix, runs both experiments.
-3. Look at `outputs/latent_715093703/*.png` and `outputs/coupling_715093703/*.png`; copy them into `outputs/real/` and update the README Status + one results paragraph per experiment. Keep the "Limits" section.
-4. Open the repo (it's private until the real-data run is in).
+## Next
+1. Commit `outputs/latent_715093703/` and `outputs/coupling_715093703/` from the Blade (`.gitignore` already whitelists `outputs/*_715093703/`). Quote `corr_permutation_p` from `coupling_715093703/metrics.json` in the README once it is in.
+2. Second session + 20 ms bins — the two obvious robustness checks before any sentence in the README is generalised.
+3. DLAG-style time-delayed shared latents: the test that separates "slow common signal" from "communication" in Experiment 1.
+4. Experiment 2 input term (stimulus / running speed as exogenous input) so the one-step model is not forced to explain stimulus-driven variance as recurrence.
 
 ## allensdk
 - pynwb and hdmf are pinned (<2.6 / <3.14): newer ones cannot open the NWB 2.2.2 files (`Can't instantiate abstract class NWBFile`), and the allensdk cache then mistakes the reader error for a missing file and re-downloads. The bootstrap opens the NWB once before calling the cache for exactly this reason.
