@@ -15,6 +15,9 @@ Status: pipeline complete and tested on synthetic data, and run once on a real
 session (Visual Coding Neuropixels 715093703: VISrl, VISp, VISpm, VISl, VISam;
 50 ms bins inside `natural_movie_one`; 12,009 bins). Results below are from
 that single session and should be read as a first pass, not a study.
+Provenance: the Experiment 1 outputs were produced at commit `896f68c` (its code
+is unchanged since); the Experiment 2 outputs at `dbc8ed8`. Each `metrics.json`
+records its own SHA.
 
 ## Experiment 1 — shared / private factor analysis
 
