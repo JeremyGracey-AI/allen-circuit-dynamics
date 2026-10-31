@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1 — 2026-10-31
+- Docs only. README cut to a landing page (install, quickstart, the three contracts, headline results); the full write-up with the verdict table and limits moved to `docs/results.md`. Fixed a dangling "question 2" reference, an unnamed paper, and two line-wrap artifacts the PyPI page exposed.
+
 ## 0.2.0 — 2026-10-31
 - Experiment 3: D1 vs D2 striatal neurons, shared / private covariance and the lever, on the public Klee et al. (2026) two-photon dataset (six mice). Pre-registered (`docs/experiment3_preregistration.md`, `b1676da`) before the run; verdicts and effect sizes in the README. Loader (`klee_data.py`), count-matched draws, three-way partition, motion-regressed decoding, lag profile, `acd force`, `scripts/evaluate_prereg.py`.
 - `PopulationDataset.extras` for per-bin covariates; `lagged.py` block-safe lag pairing and within-block shift null.

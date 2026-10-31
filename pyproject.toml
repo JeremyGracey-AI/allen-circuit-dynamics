@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "allen-circuit-dynamics"
-version = "0.2.0"
+version = "0.2.1"
 description = "Shared/private latent-variable models and connectivity-constrained dynamics for simultaneously recorded neural populations, run on open Allen Institute data."
 readme = "README.md"
 requires-python = ">=3.10"
