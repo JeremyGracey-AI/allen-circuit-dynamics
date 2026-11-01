@@ -13,6 +13,11 @@
 - Experiment 4 results: 31 of 40 sessions (5 lack `brain_region`, 4 have no wheel). H5a
   (pooled spike lead) and H7 (coupling) supported; H5b and H6 not. Write-up in
   `docs/results.md`; `scripts/evaluate_prereg_exp4.py` scores it.
+- `acd lead` runs one session at a time (fetch → analyse → write), retries transient network
+  errors (missing columns are not retried), records skipped sessions with reasons in the pooled
+  `metrics.json`, and line-buffers its output so `tail -f` on a nohup log shows progress.
+- Cross-machine check: 22 sessions computed in the cloud and on WSL2 with different
+  numpy / scipy / scikit-learn versions agree to 3e-13 on every recorded field.
 
 ## 0.2.1 — 2026-10-31
 - Docs only. README cut to a landing page (install, quickstart, the three contracts, headline results); the full write-up with the verdict table and limits moved to `docs/results.md`. Fixed a dangling "question 2" reference, an unnamed paper, and two line-wrap artifacts the PyPI page exposed.

@@ -52,3 +52,31 @@ def test_planted_lead_is_recovered_per_unit_and_pooled():
     pooled = pool_lead([m, m], lc)
     assert pooled["verdicts"]["H5a_pooled_lead"]["D1"]
     assert pooled["verdicts"]["H6_same_lead"]
+
+
+def test_load_with_retries_retries_transient_and_not_permanent(monkeypatch):
+    from allen_circuit_dynamics import aind_opto
+
+    sess, _ = make_synthetic_lead(LeadSynthConfig(n_bins=200, n_units=(3, 3, 3)))
+    calls = {"n": 0}
+
+    def flaky(cfg, cache_dir=None):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise TimeoutError("dropped connection")
+        return sess
+
+    monkeypatch.setattr(aind_opto, "load_aind_opto", flaky)
+    cfg = aind_opto.AindOptoConfig(session="x")
+    assert aind_opto.load_with_retries(cfg, sleep=lambda s: None) is sess
+    assert calls["n"] == 3
+
+    def missing(cfg, cache_dir=None):
+        calls["n"] += 1
+        raise KeyError("brain_region")
+
+    calls["n"] = 0
+    monkeypatch.setattr(aind_opto, "load_aind_opto", missing)
+    with pytest.raises(KeyError):
+        aind_opto.load_with_retries(cfg, sleep=lambda s: None)
+    assert calls["n"] == 1  # permanent: no retry

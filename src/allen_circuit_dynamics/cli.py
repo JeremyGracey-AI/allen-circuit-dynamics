@@ -243,38 +243,45 @@ def cmd_lead(args: argparse.Namespace) -> int:
 
     cfg = LeadConfig(seed=args.seed)
     out = Path(args.out)
-    results = []
+    results: list[dict] = []
+    skipped: dict[str, str] = {}
+
+    def analyse(name, sess) -> None:
+        m = run_lead_session(sess, cfg)
+        _write_metrics(m, out / name, cfg, sess.meta)
+        plot_lead(m, out / name)
+        print(f"== {name}: {sess.types()} {sess.n_bins} bins ==")
+        print(_summarise_lead(m))
+        results.append(m)
+
     if args.synthetic:
         from .synth import LeadSynthConfig, make_synthetic_lead
 
         sess, _ = make_synthetic_lead(LeadSynthConfig(seed=args.seed))
-        sessions = [("synthetic", sess)]
+        analyse("synthetic", sess)
     else:
-        from .aind_opto import SESSIONS, AindOptoConfig, load_aind_opto
+        from .aind_opto import SESSIONS, AindOptoConfig, load_with_retries
 
         names = list(SESSIONS) if args.sessions == "all" else args.sessions.split(",")
-        sessions = []
+        # One session at a time: fetch, analyse, write. A crash or kill loses at most one
+        # session, and --resume picks up from the files already written.
         for name in names:
+            done = out / name / "metrics.json"
+            if args.resume and done.exists():
+                with open(done) as fh:
+                    results.append(json.load(fh))
+                print(f"== {name}: cached")
+                continue
             try:
-                sess = load_aind_opto(AindOptoConfig(session=name), cache_dir=args.cache)
-                sessions.append((name, sess))
+                sess = load_with_retries(AindOptoConfig(session=name), cache_dir=args.cache)
             except Exception as e:  # one bad session must not stop the sweep
-                print(f"== {name}: skipped ({type(e).__name__}: {e})")
-    for name, sess in sessions:
-        sub = out / name
-        if args.resume and (sub / "metrics.json").exists():
-            with open(sub / "metrics.json") as fh:
-                m = json.load(fh)
-            print(f"== {name}: cached")
-        else:
-            m = run_lead_session(sess, cfg)
-            _write_metrics(m, sub, cfg, sess.meta)
-            plot_lead(m, sub)
-            print(f"== {name}: {sess.types()} {sess.n_bins} bins ==")
-            print(_summarise_lead(m))
-        results.append(m)
+                skipped[name] = f"{type(e).__name__}: {e}"
+                print(f"== {name}: skipped ({skipped[name]})")
+                continue
+            analyse(name, sess)
     if len(results) > 1 or not args.synthetic:
         pooled = pool_lead(results, cfg)
+        pooled["skipped_sessions"] = skipped
         p = _write_metrics(pooled, out, cfg, {"sessions": [r["session"] for r in results]})
         plot_lead_pooled(pooled, out)
         v = pooled["verdicts"]
@@ -295,6 +302,8 @@ def cmd_lead(args: argparse.Namespace) -> int:
             f"H5a {v['H5a_pooled_lead']}  H5b {v['H5b_population_lead']}  "
             f"H6 {v['H6_same_lead']}  H7 {v['H7_coupled_fraction']}"
         )
+        if skipped:
+            print(f"skipped {len(skipped)} sessions (reasons in the pooled metrics.json)")
         print(f"wrote {p}")
     return 0
 
@@ -305,6 +314,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     from . import __version__
 
+    # Line-buffer stdout so `nohup acd ... > run.log` can be followed with `tail -f`.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(line_buffering=True)
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = p.add_subparsers(dest="cmd", required=True)
 

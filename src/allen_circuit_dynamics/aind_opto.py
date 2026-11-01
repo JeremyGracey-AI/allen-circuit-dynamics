@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -327,3 +328,32 @@ def load_aind_opto(cfg: AindOptoConfig, cache_dir: Path | str | None = None) -> 
     if cache is not None:
         out.save(cache)
     return out
+
+
+# Errors that mean the session lacks something this experiment needs; retrying cannot help.
+PERMANENT_ERRORS: tuple[type[BaseException], ...] = (KeyError, FileNotFoundError)
+
+
+def load_with_retries(
+    cfg: AindOptoConfig,
+    cache_dir: Path | str | None = None,
+    attempts: int = 3,
+    wait_s: float = 15.0,
+    sleep=time.sleep,
+) -> OptoSession:
+    """``load_aind_opto`` with retries for transient network errors.
+
+    A missing column or asset (``PERMANENT_ERRORS``) is raised at once; anything else
+    (timeouts, dropped connections, truncated reads) is retried ``attempts - 1`` times
+    with a linear back-off, then re-raised.
+    """
+    for i in range(attempts):
+        try:
+            return load_aind_opto(cfg, cache_dir=cache_dir)
+        except PERMANENT_ERRORS:
+            raise
+        except Exception:
+            if i == attempts - 1:
+                raise
+            sleep(wait_s * (i + 1))
+    raise RuntimeError("unreachable")  # pragma: no cover
