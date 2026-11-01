@@ -1,0 +1,114 @@
+{
+  "provenance": {
+    "package_version": "0.2.1",
+    "git_sha": "8ed343a",
+    "run_at_utc": "2026-11-01T03:39:56+00:00",
+    "python": "3.11.17",
+    "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "numpy": "1.23.5",
+    "scipy": "1.10.1",
+    "sklearn": "1.7.2",
+    "config_hash": "0b91cba05c30",
+    "data": {
+      "source": "Lakunina et al. 2026 (Neuropixels Opto), AIND open data, CC BY 4.0",
+      "bucket": "https://aind-open-data.s3.us-west-2.amazonaws.com",
+      "asset": "ecephys_682085_2023-10-03_16-42-49_nwb_2025-07-15_08-51-19/",
+      "nwb": "ecephys_682085_2023-10-03_16-42-49_nwb_2025-07-15_08-51-19/ecephys_682085_2023-10-03_16-42-49_experiment1_recording1.nwb/",
+      "session": "ecephys_682085_2023-10-03_16-42-49",
+      "subject_id": "682085",
+      "genotype": "Slc17a6-IRES-Cre/wt",
+      "sex": "Male",
+      "epoch": "pre-stimulus",
+      "epoch_window_s": [
+        4790.038274665684,
+        5996.0651333333335
+      ],
+      "bin_s": 0.01,
+      "regions": [
+        "CP",
+        "STR",
+        "ACB",
+        "STRd",
+        "STRv"
+      ],
+      "qc_only": true,
+      "n_units_table": 382,
+      "n_units_striatal": 0,
+      "n_units_included": 0,
+      "cell_types_included": {},
+      "behavior": "speed = |linear velocity| (running disc), bin mean",
+      "speed_units": ""
+    }
+  },
+  "experiment": "lead",
+  "session": "ecephys_682085_2023-10-03_16-42-49",
+  "subject_id": "682085",
+  "genotype": "Slc17a6-IRES-Cre/wt",
+  "epoch": "pre-stimulus",
+  "epoch_window_s": [
+    4790.038274665684,
+    5996.0651333333335
+  ],
+  "n_bins": 120602,
+  "bin_s": 0.01,
+  "cell_types": {},
+  "by_type": {},
+  "units": [],
+  "population": {},
+  "exploratory_fa": null,
+  "config": {
+    "max_lag_bins": 100,
+    "smooth_sigma_bins": 2.5,
+    "n_null_unit": 200,
+    "min_units": 3,
+    "n_untagged_ref": 50,
+    "n_splits": 5,
+    "decode_alpha": 1.0,
+    "n_null_pop": 10,
+    "pop_lag_step": 2,
+    "fa_bin_factor": 10,
+    "fa_d_shared": [
+      1,
+      2
+    ],
+    "fa_d_private": [
+      0,
+      1
+    ],
+    "fa_max_lag_bins": 15,
+    "fa_min_units": [
+      3,
+      3
+    ],
+    "bootstrap": 1000,
+    "seed": 0
+  },
+  "dataset_meta": {
+    "source": "Lakunina et al. 2026 (Neuropixels Opto), AIND open data, CC BY 4.0",
+    "bucket": "https://aind-open-data.s3.us-west-2.amazonaws.com",
+    "session": "ecephys_682085_2023-10-03_16-42-49",
+    "subject_id": "682085",
+    "genotype": "Slc17a6-IRES-Cre/wt",
+    "sex": "Male",
+    "epoch": "pre-stimulus",
+    "epoch_window_s": [
+      4790.038274665684,
+      5996.0651333333335
+    ],
+    "bin_s": 0.01,
+    "regions": [
+      "CP",
+      "STR",
+      "ACB",
+      "STRd",
+      "STRv"
+    ],
+    "qc_only": true,
+    "n_units_table": 382,
+    "n_units_striatal": 0,
+    "n_units_included": 0,
+    "cell_types_included": {},
+    "behavior": "speed = |linear velocity| (running disc), bin mean",
+    "speed_units": ""
+  }
+}
