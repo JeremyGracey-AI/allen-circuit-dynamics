@@ -126,6 +126,15 @@ Experiment 3 (Klee et al. 2026, 246 MB, CPU only, ~45 min per mouse):
 acd force --mat Switching_2p_Struc_Main.mat --mouse all --out outputs/force_klee
 ```
 
+Experiment 4 (Lakunina et al. 2026 Neuropixels Opto sessions, read straight from
+Allen's public bucket as NWB-zarr — no download step, ~100 MB per session, ~2 min each):
+
+```bash
+uv pip install -e ".[aind]"
+acd lead --sessions all --out outputs/lead_aind --resume      # 40 sessions; --sessions a,b for a subset
+python scripts/evaluate_prereg_exp4.py outputs/lead_aind      # H5–H7 verdict table from the metrics
+```
+
 ## What the loader does to the data
 
 - Unit QC: `isi_violations < 0.5`, `amplitude_cutoff < 0.1`, `presence_ratio > 0.9`.
@@ -158,11 +167,14 @@ src/allen_circuit_dynamics/
   klee_data.py        Klee et al. 2026 two-photon loader (h5py; dF/F per the paper)
   lagged.py           lag pairing that never crosses CV blocks; within-block shift null
   experiments_force.py  Experiment 3 (count-matched draws, contexts, lag profile)
-  cli.py              acd demo | fetch | latent | coupling | force
-docs/results.md                       full write-up, verdict table, limits
+  aind_opto.py        Neuropixels Opto loader: NWB-zarr columns over HTTP from s3://aind-open-data
+  experiments_lead.py Experiment 4 (per-unit and population lag vs running speed, pooled verdicts)
+  cli.py              acd demo | fetch | latent | coupling | force | lead
+docs/results.md                       full write-up, verdict tables, limits
 docs/experiment3_preregistration.md   hypotheses, grid, controls, decision rules — committed before the run
-tests/                19 tests (~10 s without the two marked slow), synthetic only
-scripts/              bootstrap_linux.sh, run_experiments.sh, evaluate_prereg.py, replot_force.py
+docs/experiment4_preregistration.md   same for Experiment 4
+tests/                22 tests (~15 s without the three marked slow), synthetic only
+scripts/              bootstrap_linux.sh, run_experiments.sh, evaluate_prereg.py, evaluate_prereg_exp4.py, replot_force.py
 ```
 
 ## References
@@ -174,3 +186,4 @@ scripts/              bootstrap_linux.sh, run_experiments.sh, evaluate_prereg.py
 - Oh et al. (2014). A mesoscale connectome of the mouse brain. *Nature*. (Mouse Connectivity Atlas)
 - Klee, Fernando-Peiris, Athalye, Costa, Peterka & Sippy (2026). Shared striatal neurons exhibit context-specific dynamics for internally and externally driven actions. *Science Advances*. Data: Zenodo 10.5281/zenodo.16333867, CC BY 4.0. (Experiment 3 dataset)
 - Athalye, Ganguly, Costa & Carmena (2017). Emergence of coordinated neural dynamics underlies neuroprosthetic learning and skillful control. *Neuron*. (shared vs. private variance vocabulary)
+- Lakunina, Socha, Ladd, …, Siegle & Carandini (2026). Neuropixels Opto: combining high-resolution electrophysiology and optogenetics. *Nature Methods*. Data: Allen Institute for Neural Dynamics, `s3://aind-open-data`, CC BY 4.0; Code Ocean capsule 1593868. (Experiment 4 dataset)

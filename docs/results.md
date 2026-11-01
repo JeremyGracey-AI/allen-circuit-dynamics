@@ -193,3 +193,4 @@ after the analysis code at `6cfff70`.
 - Oh et al. (2014). A mesoscale connectome of the mouse brain. *Nature*. (Mouse Connectivity Atlas)
 - Klee, Fernando-Peiris, Athalye, Costa, Peterka & Sippy (2026). Shared striatal neurons exhibit context-specific dynamics for internally and externally driven actions. *Science Advances*. Data: Zenodo 10.5281/zenodo.16333867, CC BY 4.0. (Experiment 3 dataset)
 - Athalye, Ganguly, Costa & Carmena (2017). Emergence of coordinated neural dynamics underlies neuroprosthetic learning and skillful control. *Neuron*. (shared vs. private variance vocabulary)
+- Lakunina, Socha, Ladd, …, Siegle & Carandini (2026). Neuropixels Opto: combining high-resolution electrophysiology and optogenetics. *Nature Methods*. Data: Allen Institute for Neural Dynamics, `s3://aind-open-data`, CC BY 4.0; Code Ocean capsule 1593868. (Experiment 4 dataset)
