@@ -10,7 +10,9 @@ contracts:
   structure constrains the fitted inter-area coupling of a linear dynamical
   model;
 * **action** (:func:`run_force_experiment`): whether the shared or the private
-  subspace of two cell-type-defined populations predicts a motor output.
+  subspace of two cell-type-defined populations predicts a motor output;
+  and its timing (:func:`run_lead_session`, :func:`pool_lead`): whether optotagged
+  units' spiking leads the output.
 
 Everything runs end-to-end on synthetic data (``acd demo``) so the pipeline is
 testable without the multi-gigabyte recordings. Not affiliated with the Allen
@@ -19,6 +21,7 @@ Institute; the data are theirs and their collaborators', the code is not.
 
 from importlib.metadata import PackageNotFoundError, version
 
+from .aind_opto import OptoSession
 from .dataset import PopulationDataset
 from .experiments import (
     CouplingConfig,
@@ -27,6 +30,7 @@ from .experiments import (
     run_latent_experiment,
 )
 from .experiments_force import ForceConfig, run_force_experiment
+from .experiments_lead import LeadConfig, pool_lead, run_lead_session
 from .models.coupling import CoupledLDS
 from .models.shared_private import SharedPrivateFA
 
@@ -40,10 +44,14 @@ __all__ = [
     "CouplingConfig",
     "ForceConfig",
     "LatentConfig",
+    "LeadConfig",
+    "OptoSession",
     "PopulationDataset",
     "SharedPrivateFA",
     "__version__",
+    "pool_lead",
     "run_coupling_experiment",
     "run_force_experiment",
     "run_latent_experiment",
+    "run_lead_session",
 ]

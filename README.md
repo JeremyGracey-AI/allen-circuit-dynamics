@@ -26,7 +26,7 @@ latents = model.transform(ds.x1, ds.x2)                # {"shared": ..., "privat
 
 One model sits underneath: a population's activity is a few shared latents,
 a few private latents, and per-neuron noise, possibly with linear dynamics on
-the latents. The three experiments score that model on three different
+the latents. The four experiments score that model on three different
 **output contracts**, in the sense of asking what the model is *for*:
 
 | | Contract | Scored by | Data |
@@ -34,6 +34,7 @@ the latents. The three experiments score that model on three different
 | Exp 1 | **Observations** — reconstruct the recorded activity | held-out log-likelihood; shared / private / independent variance partition | Visual Coding Neuropixels, VISrl ↔ VISp |
 | Exp 2 | **State** — predict the next latent state | held-out one-step R², with and without an anatomical prior | Visual Coding Neuropixels, five visual areas + Mouse Connectivity Atlas |
 | Exp 3 | **Action** — predict the animal's output from the latents | held-out R² of lever displacement per subspace, lag profile, pre-registered | Klee et al. 2026 two-photon D1 / D2 striatum (Zenodo) |
+| Exp 4 | **Action, timing** — does the activity come before the output? | per-unit and population lag against running speed, pre-registered | Lakunina et al. 2026 Neuropixels Opto, optotagged D1 / D2 striatum (AIND open data) |
 
 A model that scores well on one contract need not score well on another; the
 point of running all three is to say which one each dataset supports. Full
@@ -86,7 +87,8 @@ in these sessions — both reported as written.
 
 ![pooled peak lags](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/lead_pooled_peaks.png)
 
-Every result is a first pass on one session per animal, not a study. The
+Every result is a first pass, not a study: Experiments 1–3 use one session per
+animal, Experiment 4 pools 31 sessions from 19 mice. The
 limits are listed in [`docs/results.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/results.md#limits-stated-up-front).
 
 ## Models
@@ -143,7 +145,7 @@ Experiment 4 (Lakunina et al. 2026 Neuropixels Opto sessions, read straight from
 Allen's public bucket as NWB-zarr — no download step, ~100 MB per session, ~2 min each):
 
 ```bash
-uv pip install -e ".[aind]"
+pip install "allen-circuit-dynamics[aind]"                  # or, in a clone: uv pip install -e ".[aind]"
 acd lead --sessions all --out outputs/lead_aind --resume      # 40 sessions; --sessions a,b for a subset
 python scripts/evaluate_prereg_exp4.py outputs/lead_aind      # H5–H7 verdict table from the metrics
 ```
@@ -186,7 +188,7 @@ src/allen_circuit_dynamics/
 docs/results.md                       full write-up, verdict tables, limits
 docs/experiment3_preregistration.md   hypotheses, grid, controls, decision rules — committed before the run
 docs/experiment4_preregistration.md   same for Experiment 4
-tests/                22 tests (~15 s without the three marked slow), synthetic only
+tests/                23 tests (~15 s without the three marked slow), synthetic only
 scripts/              bootstrap_linux.sh, run_experiments.sh, evaluate_prereg.py, evaluate_prereg_exp4.py, replot_force.py
 ```
 

@@ -6,7 +6,7 @@ authors:
   - family-names: Gracey
     given-names: Jeremy
     email: jeremy.a.gracey@gmail.com
-version: 0.2.1
+version: 0.3.0
 date-released: 2026-10-31
 license: MIT
 repository-code: "https://github.com/JeremyGracey-AI/allen-circuit-dynamics"
@@ -16,6 +16,7 @@ keywords:
   - latent variable models
   - Neuropixels
   - calcium imaging
+  - optogenetics
   - communication subspace
 references:
   - type: article
@@ -60,3 +61,20 @@ references:
     year: 2026
     doi: 10.1126/sciadv.aed9386
     notes: "Dataset for Experiment 3, Zenodo 10.5281/zenodo.16333867 (CC BY 4.0)"
+  - type: article
+    title: "Neuropixels Opto: combining high-resolution electrophysiology and optogenetics"
+    authors:
+      - family-names: Lakunina
+        given-names: Anna A.
+      - family-names: Socha
+        given-names: Karolina Z.
+      - family-names: Ladd
+        given-names: Alexander E.
+      - family-names: Siegle
+        given-names: Joshua H.
+      - family-names: Carandini
+        given-names: Matteo
+    journal: Nature Methods
+    year: 2026
+    doi: 10.1038/s41592-026-03076-z
+    notes: "Dataset for Experiment 4, Allen Institute for Neural Dynamics open data (s3://aind-open-data, CC BY 4.0)"
