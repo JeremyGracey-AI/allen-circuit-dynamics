@@ -73,6 +73,19 @@ written thresholds in `docs/results.md`.
 
 ![JK238 lag profile](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_lag_profile.png)
 
+**Experiment 4 — timing.** Experiment 3 found no neural lead and blamed the
+calcium indicator; this tests that on spikes. Lakunina et al. (2026)
+Neuropixels Opto sessions, optotagged D1 and D2 units, read straight from
+Allen's open bucket; pre-registered
+([`docs/experiment4_preregistration.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/experiment4_preregistration.md)).
+Across 31 sessions, speed-coupled D1 units lead running by a median 145 ms
+and D2 units by 100 ms (both bootstrap CIs exclude zero), shorter than the
+indicator's decay. Two of four predictions met; the D1-vs-D2 comparison is
+under-powered, and the pre-registered population metric could not see timing
+in these sessions — both reported as written.
+
+![pooled peak lags](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/lead_pooled_peaks.png)
+
 Every result is a first pass on one session per animal, not a study. The
 limits are listed in [`docs/results.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/results.md#limits-stated-up-front).
 

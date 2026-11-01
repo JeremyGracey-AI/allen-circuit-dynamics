@@ -152,12 +152,72 @@ D1-Cre (EY217) animals; the neural–video correlation is also a third of the
 others' there, so it is a property of those recordings (press rates are
 half the others') rather than of the model. The
 timing question is not answerable at 30 fps with a slow indicator: a lead
-shorter than the GCaMP decay is folded into lag 0.
+shorter than the GCaMP decay is folded into lag 0. Experiment 4 tests that on
+spikes.
 
 Per-mouse `metrics.json` and figures are under `outputs/force_klee/`;
 `scripts/evaluate_prereg.py` reproduces the table from them. JK326's metrics
 record `5c913f0`, a commit that changed only the summary and plotting code
 after the analysis code at `6cfff70`.
+
+## Experiment 4 — do D1 and D2 spikes lead the motor output?
+
+Pre-registered in [`docs/experiment4_preregistration.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/experiment4_preregistration.md)
+(commit `435c197`) before any code read the data. Experiment 3's H3 failed at
+30 fps calcium, and its write-up blamed the indicator. This experiment tests
+that excuse on spikes. Data: Lakunina et al. (2026), the Neuropixels Opto
+sessions on the Allen Institute for Neural Dynamics open bucket, read as
+NWB-zarr over HTTP. The paper's own optotagging verdict (`predicted_cell_type`)
+labels each unit D1, D2, ChAT, … or untagged. Behaviour is running speed on a
+disc, not a lever. Pre-stimulus epoch only (10–20 min per session, no laser),
+10 ms bins, QC-passing striatal units.
+
+Forty sessions listed; **31 analysed**. Five have no `brain_region` column in
+their units table and four have no running wheel (face tracking only); both
+are skipped with the reason logged. Tagged units in the analysed set: 136 D1
+in 15 sessions, 61 D2 in 7 sessions. Both types with ≥ 3 units in the same
+session: one session.
+
+| | Hypothesis | Verdict | What the numbers say |
+|---|---|---|---|
+| H5a | Striatal spikes lead running (pooled) | **supported** | Coupled-unit median peak lag D1 **−145 ms** (bootstrap CI −205 to −75), D2 **−100 ms** (−150 to −50); both inside the pre-registered −500…−50 ms window, both CIs exclude 0 |
+| H5b | …at the population level (ridge profile) | not supported | Negative and above null in 1 / 15 (D1) and 2 / 7 (D2) sessions. The ridge profile is broken by design here: mice run in a few CV blocks and sit in the rest, so cross-block R² is negative at every lag |
+| H6 | D1 and D2 lead by the same amount | not supported | Median difference −45 ms, CI −165 to +40. The CI includes 0 but is wider than the ±100 ms the rule required: under-powered, not different |
+| H7 | Both types are speed-coupled | **supported** | Coupled fraction D1 0.43 (58 / 136), D2 0.74 (45 / 61) |
+
+![pooled peak lags](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/lead_pooled_peaks.png)
+
+**Reference population.** Untagged striatal units also lead, but by less:
+1367 of 2546 coupled, median peak lag −60 ms, 59% at negative lags (D1 72%,
+D2 64%). The lead is a property of striatal activity in general; the tagged
+projection neurons lead by more than the unlabelled mix, which also contains
+interneurons.
+
+**Post hoc, labelled as such.** A session-level measure added after the first
+session showed the ridge profile cannot see timing: the mean z-rate of each
+group cross-correlated with speed, same shift null. Negative peak and coupled
+in 7 / 15 (D1) and 4 / 7 (D2) sessions. It does not enter any verdict.
+
+**Heterogeneity.** About a third of coupled tagged units peak at positive lags
+(after speed), and a few at the ±1 s window edge. The pooled median is the
+pre-registered statistic; the distribution is in the figure and per unit in
+each session's `metrics.json`.
+
+**Exploratory, one session** (`661398_2023-04-06`, 27 D1 / 4 D2, 100 ms bins):
+`d_shared = 2`, shared fractions D1 0.08 / D2 0.17. Four D2 units; not
+compared with Experiment 3's partition.
+
+**Reading.** At spike resolution, D1 and D2 projection neurons lead running by
+about 100–150 ms. That is shorter than GCaMP's decay, which is what
+Experiment 3 needed for its lag-0 peak to be the indicator rather than the
+biology. It is consistent with that explanation, not a confirmation of it:
+different mice, a different lab, and running rather than a lever press.
+
+![session 661398_2023-04-06](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/ecephys_661398_2023-04-06_16-02-15/lead_population_profile.png)
+
+`scripts/evaluate_prereg_exp4.py outputs/lead_aind` rebuilds the table from the
+per-session files. The cloud run and an independent run on a second machine
+use the same code and seed.
 
 ## Limits, stated up front
 
@@ -183,6 +243,12 @@ after the analysis code at `6cfff70`.
   neural data at all. The context split is under-powered by block count.
 - The `d_shared` grid ceiling (8) was hit in four mice; the shared
   dimensionality reported there is a lower bound.
+- Experiment 4: running, not a lever; head-fixed on a disc; pre-stimulus epochs
+  of 10–20 min; tagged counts are small per session (most sessions tag one
+  type), so the pooled per-unit statistic is the real test and the D1-vs-D2
+  comparison is under-powered. Nine of forty sessions could not be analysed
+  (missing region labels or no wheel). The paper's tagging verdict is used as
+  published, not re-derived.
 
 ## References
 
