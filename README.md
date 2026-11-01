@@ -65,12 +65,14 @@ the record.
 **Experiment 3 — action.** Klee et al. (2026), six mice, D1 and D2 striatal
 neurons imaged together with a lever; pre-registered before the run
 ([`docs/experiment3_preregistration.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/experiment3_preregistration.md)).
-In every mouse the two populations share one subspace with nearly identical
-shared fractions (0.18 / 0.18 … 0.26 / 0.21) and 1–5 % population-specific
-variance. The shared subspace decodes the lever in two mice (R² 0.36, 0.17)
-and not in three; the predicted neural lead does not appear at 30 fps. Three
-of six pre-registered predictions were met; all six are scored against the
-written thresholds in `docs/results.md`.
+Most of the correlated variance in either population is shared with the other
+(shared fractions 0.16–0.26, 1–5 % population-specific), but a post hoc
+control finds the same partition for random splits of the same neurons, so it
+describes the striatal population, not a D1/D2 difference. The shared subspace
+decodes the lever in two mice (R² 0.36, 0.17) and not in three; the predicted
+neural lead does not appear at 30 fps. Three of six pre-registered predictions
+were met; all six are scored against the written thresholds in
+`docs/results.md`.
 
 ![JK238 lag profile](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_lag_profile.png)
 
@@ -80,15 +82,19 @@ Neuropixels Opto sessions, optotagged D1 and D2 units, read straight from
 Allen's open bucket; pre-registered
 ([`docs/experiment4_preregistration.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/experiment4_preregistration.md)).
 Across 31 sessions, speed-coupled D1 units lead running by a median 145 ms
-and D2 units by 100 ms (both bootstrap CIs exclude zero), shorter than the
-indicator's decay. Two of four predictions met; the D1-vs-D2 comparison is
-under-powered, and the pre-registered population metric could not see timing
-in these sessions — both reported as written.
+and D2 units by 100 ms. The pre-registered bootstrap over units excludes zero;
+a post hoc bootstrap over mice does not (D1 −360 to +70 ms, 7 mice; D2 −260
+to +60 ms, 5 mice). The lead is negative in most mice (5 of 7, 4 of 5) but not
+established for striatum. Two of four pre-registered predictions met;
+the D1-vs-D2 comparison is under-powered, and the pre-registered population
+metric could not see timing in these sessions — all reported as written.
 
 ![pooled peak lags](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/lead_pooled_peaks.png)
 
 Every result is a first pass, not a study: Experiments 1–3 use one session per
-animal, Experiment 4 pools 31 sessions from 19 mice. The
+animal, Experiment 4 pools 31 sessions from 19 mice. Two post hoc checks added
+in 0.3.1 narrow the Experiment 3 and 4 readings; both are in `docs/results.md`,
+labelled as post hoc, with the scripts that reproduce them. The
 limits are listed in [`docs/results.md`](https://github.com/JeremyGracey-AI/allen-circuit-dynamics/blob/main/docs/results.md#limits-stated-up-front).
 
 ## Models
@@ -190,6 +196,7 @@ docs/experiment3_preregistration.md   hypotheses, grid, controls, decision rules
 docs/experiment4_preregistration.md   same for Experiment 4
 tests/                23 tests (~15 s without the three marked slow), synthetic only
 scripts/              bootstrap_linux.sh, run_experiments.sh, evaluate_prereg.py, evaluate_prereg_exp4.py, replot_force.py
+                      posthoc_exp3_random_split.py, posthoc_exp4_hierarchical.py (post hoc, not pre-registered)
 ```
 
 ## References

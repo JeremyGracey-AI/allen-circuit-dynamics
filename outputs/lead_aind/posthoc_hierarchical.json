@@ -1,0 +1,75 @@
+{
+  "note": "post hoc, not pre-registered; see docstring",
+  "boot": 4000,
+  "types": {
+    "D1": {
+      "n_mice": 7,
+      "n_sessions": 12,
+      "n_coupled_units": 58,
+      "median_lag_s": -0.14500000000000002,
+      "hierarchical_ci95_s": [
+        -0.36,
+        0.07
+      ],
+      "per_mouse_median_lag_s": {
+        "655568": -0.08,
+        "655571": 0.26,
+        "655572": -0.29,
+        "661398": -0.165,
+        "666861": -1.0,
+        "678577": 0.16,
+        "684156": -0.13
+      },
+      "mice_with_negative_median": 5
+    },
+    "D2": {
+      "n_mice": 5,
+      "n_sessions": 7,
+      "n_coupled_units": 45,
+      "median_lag_s": -0.1,
+      "hierarchical_ci95_s": [
+        -0.26,
+        0.06
+      ],
+      "per_mouse_median_lag_s": {
+        "655565": -0.05,
+        "661398": -0.37,
+        "666721": -0.16,
+        "671646": -0.05,
+        "674005": 0.06
+      },
+      "mice_with_negative_median": 4
+    }
+  },
+  "tagged_minus_untagged_within_session": {
+    "D1": {
+      "n_sessions": 10,
+      "median_diff_s": -0.037500000000000006,
+      "sessions_tagged_earlier": 5,
+      "per_session_diff_s": [
+        -0.07500000000000001,
+        0.39,
+        0.19,
+        -0.47500000000000003,
+        0.0,
+        -0.08000000000000002,
+        -0.98,
+        0.27,
+        0.12000000000000001,
+        -0.09999999999999998
+      ]
+    },
+    "D2": {
+      "n_sessions": 5,
+      "median_diff_s": -0.020000000000000004,
+      "sessions_tagged_earlier": 3,
+      "per_session_diff_s": [
+        -0.020000000000000004,
+        -0.21,
+        0.0,
+        -0.25,
+        0.039999999999999994
+      ]
+    }
+  }
+}

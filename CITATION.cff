@@ -6,8 +6,8 @@ authors:
   - family-names: Gracey
     given-names: Jeremy
     email: jeremy.a.gracey@gmail.com
-version: 0.3.0
-date-released: 2026-10-31
+version: 0.3.1
+date-released: 2026-11-01
 license: MIT
 repository-code: "https://github.com/JeremyGracey-AI/allen-circuit-dynamics"
 keywords:

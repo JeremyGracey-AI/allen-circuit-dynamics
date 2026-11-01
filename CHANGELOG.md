@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.1 — 2026-11-01
+- Docs and two post hoc scripts. No package code changed; every pre-registered verdict stands as
+  scored. The corrections are dated and listed at the top of `docs/results.md`.
+- Correction, Experiment 3. `scripts/posthoc_exp3_random_split.py` compares the D1/D2
+  shared/private partition with 50 random two-way splits of the same neurons in each mouse. They
+  match in all six mice (p 0.06–0.78), so the equal shared fractions describe the striatal
+  population, not D1 versus D2. The 0.3.0 write-up called them "the robust finding"; that reading
+  is withdrawn.
+- Correction, Experiment 4. `scripts/posthoc_exp4_hierarchical.py` resamples mice, then sessions,
+  then units. The lead's 95% intervals include zero (D1 −360 to +70 ms, 7 mice; D2 −260 to +60 ms,
+  5 mice); per-mouse medians are negative in 5 of 7 and 4 of 5. The pre-registered unit-level H5a
+  verdict stands; the write-up no longer reads it as a property of striatum. The statement that
+  tagged units lead by more than untagged units is withdrawn (within-session difference −38 ms
+  for D1, −20 ms for D2, no consistent sign).
+- `docs/results.md`: both checks with tables, corrected readings, two new limits (units are not
+  independent; the wheel-speed signal's processing delay is unverified). README matches.
+
 ## 0.3.0 — 2026-10-31
 - Experiment 4: does striatal spiking lead the motor output? `acd lead` (new `aind` extra:
   `pip install "allen-circuit-dynamics[aind]"`) reads the Lakunina et al. (2026) Neuropixels Opto

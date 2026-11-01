@@ -1,0 +1,79 @@
+{
+  "note": "post hoc, not pre-registered; see docstring",
+  "splits": 50,
+  "seed": 0,
+  "per_mouse": [
+    {
+      "mouse": "JK238",
+      "n_per_population": 84,
+      "d_shared": 8,
+      "d_private": 4,
+      "d1_d2_shared": 0.1824520069893223,
+      "d1_d2_private": 0.025082635560359348,
+      "random_shared_mean": 0.18415627209326663,
+      "random_private_mean": 0.023598120222222504,
+      "random_private_p95": 0.024883963892171658,
+      "p_private_ge_random": 0.058823529411764705
+    },
+    {
+      "mouse": "JK239",
+      "n_per_population": 53,
+      "d_shared": 8,
+      "d_private": 4,
+      "d1_d2_shared": 0.20722621884120093,
+      "d1_d2_private": 0.03030992536944424,
+      "random_shared_mean": 0.20673421794116362,
+      "random_private_mean": 0.03145285868794844,
+      "random_private_p95": 0.03377730935284086,
+      "p_private_ge_random": 0.7843137254901961
+    },
+    {
+      "mouse": "JK244",
+      "n_per_population": 80,
+      "d_shared": 6,
+      "d_private": 2,
+      "d1_d2_shared": 0.2428251931112065,
+      "d1_d2_private": 0.02239004646532762,
+      "random_shared_mean": 0.24272375426237905,
+      "random_private_mean": 0.019971449172252305,
+      "random_private_p95": 0.02255746314205213,
+      "p_private_ge_random": 0.0784313725490196
+    },
+    {
+      "mouse": "JK323",
+      "n_per_population": 98,
+      "d_shared": 8,
+      "d_private": 4,
+      "d1_d2_shared": 0.23060845413082495,
+      "d1_d2_private": 0.046865251288467906,
+      "random_shared_mean": 0.23012035981018392,
+      "random_private_mean": 0.04606489610819775,
+      "random_private_p95": 0.05110784496819568,
+      "p_private_ge_random": 0.2549019607843137
+    },
+    {
+      "mouse": "JK324",
+      "n_per_population": 61,
+      "d_shared": 8,
+      "d_private": 4,
+      "d1_d2_shared": 0.22661664400281548,
+      "d1_d2_private": 0.04906623407622894,
+      "random_shared_mean": 0.22725350440422218,
+      "random_private_mean": 0.048648284061249825,
+      "random_private_p95": 0.05258977867814792,
+      "p_private_ge_random": 0.4117647058823529
+    },
+    {
+      "mouse": "JK326",
+      "n_per_population": 21,
+      "d_shared": 4,
+      "d_private": 1,
+      "d1_d2_shared": 0.18923471105382733,
+      "d1_d2_private": 0.022655989407884825,
+      "random_shared_mean": 0.18900605386023475,
+      "random_private_mean": 0.02181398408647119,
+      "random_private_p95": 0.025962787702281186,
+      "p_private_ge_random": 0.3333333333333333
+    }
+  ]
+}

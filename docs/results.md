@@ -1,12 +1,30 @@
 # Results
 
-The full write-up of the three experiments, with the numbers quoted from the
+The full write-up of the four experiments, with the numbers quoted from the
 committed `metrics.json` files. The README carries the short version.
 
 Provenance: Experiment 1 outputs at commit `896f68c` (code unchanged since),
 Experiment 2 at `dbc8ed8`, Experiment 3 analysis code at `6cfff70` (one mouse's
 `metrics.json` records `5c913f0`, a summary/plotting-only commit). Each
-`metrics.json` records its own SHA.
+`metrics.json` records its own SHA. The two post hoc checks below
+(`scripts/posthoc_*.py`) were run against the 0.3.0 analysis code, which 0.3.1
+does not change.
+
+**Corrections, 2026-11-01.** Two post hoc checks, run after release 0.3.0 and
+labelled as post hoc where they appear, change how two results should be read.
+The pre-registered verdicts are unchanged and still scored as written; the
+readings beneath them are corrected.
+
+1. Experiment 3: the D1/D2 shared/private partition is the same as the
+   partition of random two-way splits of the same neurons, in all six mice. The
+   equal shared fractions describe these striatal neurons as a population; they
+   say nothing about D1 versus D2. Version 0.3.0 called them "the robust
+   finding" — withdrawn.
+2. Experiment 4: the pre-registered bootstrap treats units as independent.
+   Resampling mice, then sessions, then units gives 95% intervals that include
+   zero for both D1 and D2. The 0.3.0 statement that tagged neurons lead by
+   more than untagged ones is withdrawn: within the same sessions the difference
+   has no consistent sign.
 
 ## Experiment 1 — shared / private factor analysis
 
@@ -121,7 +139,41 @@ either population is variance it shares with the other. Cross-prediction by
 reduced-rank regression is symmetric (rank 8: D2 from D1 0.08–0.18, D1 from D2
 0.10–0.18). Held-out likelihood selected the top of the pre-registered
 `d_shared` grid (8) in four of six mice, so the shared dimensionality is a
-floor, not an estimate.
+floor, not an estimate; `d_private` reached the top of its grid (4) in the
+same four.
+
+**Post hoc control: random splits (added 2026-11-01, not pre-registered).** If
+D1/D2 identity carried covariance of its own, the D1/D2 split would leave more
+private variance than a random split of the same neurons into two groups of the
+same size. Per mouse: the count-matched neurons of subsample draw 0, the
+dimensions held-out likelihood selected above (mean over draws, rounded;
+`d_private` at least 1), the same preprocessing and model, against 50 random
+splits of the pooled neurons. Shared and private fractions are the mean of the
+two groups.
+
+| Mouse | Neurons per group | (d_shared, d_private) | Shared: D1/D2 · random | Private: D1/D2 · random (p95) | p |
+|---|---|---|---|---|---|
+| JK238 | 84 | (8, 4) | 0.182 · 0.184 | 0.025 · 0.024 (0.025) | 0.06 |
+| JK239 | 53 | (8, 4) | 0.207 · 0.207 | 0.030 · 0.031 (0.034) | 0.78 |
+| JK244 | 80 | (6, 2) | 0.243 · 0.243 | 0.022 · 0.020 (0.023) | 0.08 |
+| JK323 | 98 | (8, 4) | 0.231 · 0.230 | 0.047 · 0.046 (0.051) | 0.25 |
+| JK324 | 61 | (8, 4) | 0.227 · 0.227 | 0.049 · 0.049 (0.053) | 0.41 |
+| JK326 | 21 | (4, 1) | 0.189 · 0.189 | 0.023 · 0.022 (0.026) | 0.33 |
+
+p is the fraction of random splits with at least the D1/D2 private fraction
+(add-one corrected, so the smallest possible value is 0.02). In no mouse is the
+D1/D2 split different from a random one: shared fractions agree to within
+0.002 and the private fraction sits inside the random-split distribution. The
+D1/D2 private fraction is above the random-split mean in five of six mice, by
+0.0004–0.0024 of the variance, and the per-mouse p values combine to 0.12
+(Fisher) — a difference too small and too weak to call. So
+the partition describes the population — any two halves of these neurons share
+about the same fraction of their variance — and is silent on cell type. What
+this control cannot say is whether the data could have detected a D1- or
+D2-specific subspace of plausible size; that needs a power analysis with
+planted type-specific covariance, which has not been run. Reproduce with
+`scripts/posthoc_exp3_random_split.py` (about 4 minutes); output in
+`outputs/force_klee/posthoc_random_split.json`.
 
 **Decoding (the action contract).** The pre-registered verdicts, six mice:
 
@@ -143,10 +195,12 @@ lever as such.
 ![JK238 decoding](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_decoding.png)
 ![JK238 lag profile](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/force_klee/JK238/force_lag_profile.png)
 
-**Reading.** The covariance structure is the robust finding: D1 and D2 share
-one common subspace in every animal and keep almost nothing to themselves,
-which is the population-level version of Klee et al.'s finding that both
-populations encode the action. Whether that subspace carries the lever varies by animal
+**Reading** (corrected 2026-11-01). Under this model D1 and D2 are not
+separable by covariance: their partition is what any random split of the same
+neurons gives (post hoc control above). That fits Klee et al.'s finding that
+both populations encode the action, but it is not evidence for it, because a
+partition every random split reproduces cannot speak to cell types. Whether the
+shared subspace carries the lever varies by animal
 from 0.36 to nothing, and the three mice with no lever signal are the three
 D1-Cre (EY217) animals; the neural–video correlation is also a third of the
 others' there, so it is a property of those recordings (press rates are
@@ -187,11 +241,35 @@ session: one session.
 
 ![pooled peak lags](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/lead_pooled_peaks.png)
 
-**Reference population.** Untagged striatal units also lead, but by less:
-1367 of 2546 coupled, median peak lag −60 ms, 59% at negative lags (D1 72%,
-D2 64%). The lead is a property of striatal activity in general; the tagged
-projection neurons lead by more than the unlabelled mix, which also contains
-interneurons.
+**Post hoc: resample animals, not units (added 2026-11-01, not
+pre-registered).** The H5a bootstrap is the pre-registered one, and it treats
+the 58 D1 and 45 D2 coupled units as independent. They are not: units from one
+session share a mouse, a probe and a running trace. Resampling mice, then
+sessions within a mouse, then units within a session (4000 resamples; same
+eligibility, ≥ 3 units of the type in the session) widens both intervals past
+zero:
+
+| | Mice | Sessions | Coupled units | Median peak lag | 95% CI, mouse → session → unit | Mice with a negative median |
+|---|---|---|---|---|---|---|
+| D1 | 7 | 12 | 58 | −145 ms | −360 to +70 ms | 5 of 7 |
+| D2 | 5 | 7 | 45 | −100 ms | −260 to +60 ms | 4 of 5 |
+
+Per-mouse medians: D1 −1000, −290, −165, −130, −80, +160, +260 ms; D2 −370,
+−160, −50, −50, +60 ms. The direction is mostly negative; with this many
+animals the size is not pinned down, and a claim about striatum, rather than
+about these 103 units, does not clear zero. Reproduce with
+`scripts/posthoc_exp4_hierarchical.py outputs/lead_aind`; output in
+`outputs/lead_aind/posthoc_hierarchical.json`.
+
+**Reference population.** Untagged striatal units also lead: 1367 of 2546
+coupled, median peak lag −60 ms, 59% at negative lags (D1 72%, D2 64%).
+Version 0.3.0 read this as the tagged projection neurons leading by more than
+the unlabelled mix. That comparison pooled across sessions with different mice
+and different running. Within the same session (same speed trace, same probe;
+≥ 2 coupled tagged and ≥ 5 coupled untagged units), the median tagged-minus-untagged
+difference is −38 ms for D1 (10 sessions, tagged earlier in 5) and −20 ms for
+D2 (5 sessions, earlier in 3). No consistent difference; the 0.3.0 statement is
+withdrawn.
 
 **Post hoc, labelled as such.** A session-level measure added after the first
 session showed the ridge profile cannot see timing: the mean z-rate of each
@@ -207,11 +285,18 @@ each session's `metrics.json`.
 `d_shared = 2`, shared fractions D1 0.08 / D2 0.17. Four D2 units; not
 compared with Experiment 3's partition.
 
-**Reading.** At spike resolution, D1 and D2 projection neurons lead running by
-about 100–150 ms. That is shorter than GCaMP's decay, which is what
-Experiment 3 needed for its lag-0 peak to be the indicator rather than the
-biology. It is consistent with that explanation, not a confirmation of it:
-different mice, a different lab, and running rather than a lever press.
+**Reading** (corrected 2026-11-01). In these sessions, speed-coupled D1 and D2
+units tend to fire before running speed changes: the pooled unit medians are
+−145 and −100 ms, and most animals' medians are negative. Two things keep this
+short of a claim about striatum. First, at the animal level both intervals
+include zero (post hoc above). Second, the lag is measured against the wheel
+speed as exported in the NWB file; any delay in how that signal was computed
+(a causal filter, encoder latency) would make spikes look earlier than they
+are, and it has not been checked against the raw encoder. If the lead holds, it
+is shorter than GCaMP's decay, which would fit Experiment 3's lag-0 peak being
+the indicator rather than the biology; different mice, a different lab, and
+running rather than a lever press keep that a consistency check, not a
+confirmation.
 
 ![session 661398_2023-04-06](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/ecephys_661398_2023-04-06_16-02-15/lead_population_profile.png)
 
@@ -246,13 +331,22 @@ lag, coupling flag or count differs, and the pooled verdict file is identical.
   than the indicator), and three of six mice with little lever signal in the
   neural data at all. The context split is under-powered by block count.
 - The `d_shared` grid ceiling (8) was hit in four mice; the shared
-  dimensionality reported there is a lower bound.
+  dimensionality reported there is a lower bound. The `d_private` ceiling (4)
+  was hit in the same four.
+- Experiment 3's partition does not distinguish D1 from D2: random splits of
+  the same neurons give the same shared and private fractions (post hoc
+  control). How large a type-specific subspace it could detect has not been
+  measured.
 - Experiment 4: running, not a lever; head-fixed on a disc; pre-stimulus epochs
   of 10–20 min; tagged counts are small per session (most sessions tag one
   type), so the pooled per-unit statistic is the real test and the D1-vs-D2
   comparison is under-powered. Nine of forty sessions could not be analysed
   (missing region labels or no wheel). The paper's tagging verdict is used as
   published, not re-derived.
+- Experiment 4's pre-registered bootstrap resamples units as if independent;
+  resampled by mouse, the lead's intervals include zero (7 mice for D1, 5 for
+  D2). Lags are relative to the exported wheel-speed signal, whose processing
+  delay has not been verified.
 
 ## References
 
