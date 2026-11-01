@@ -208,3 +208,60 @@ def make_synthetic_force(cfg: ForceSynthConfig | None = None) -> tuple[Populatio
     )
     truth = {"z": z, "u1": u1, "u2": u2, "lead_bins": cfg.lead_bins}
     return ds, truth
+
+
+@dataclass(frozen=True)
+class LeadSynthConfig:
+    """Spike-count data whose D1 / D2 units lead a running-speed trace by ``lead_bins``."""
+
+    n_bins: int = 30000  # 5 min at 10 ms
+    n_units: tuple[int, int, int] = (12, 6, 40)  # D1, D2, untagged
+    lead_bins: tuple[int, int] = (10, 10)  # D1, D2 lead in bins (100 ms at 10 ms)
+    coupled_fraction: float = 0.7
+    base_rate_hz: float = 4.0
+    gain: float = 1.5
+    ar_coef: float = 0.995
+    n_blocks: int = 12
+    bin_s: float = 0.01
+    seed: int = 0
+
+
+def make_synthetic_lead(cfg: LeadSynthConfig | None = None):
+    """Return an :class:`OptoSession` plus the planted truth."""
+    from .aind_opto import OptoSession
+
+    cfg = cfg or LeadSynthConfig()
+    rng = np.random.default_rng(cfg.seed)
+    drive = _ar1(rng, cfg.n_bins, 1, cfg.ar_coef)[:, 0]
+    drive = (drive - drive.mean()) / drive.std()
+    speed = np.maximum(0.0, 3.0 + 3.0 * drive + 0.5 * rng.normal(size=cfg.n_bins))
+    n1, n2, n0 = cfg.n_units
+    types = np.array(["D1"] * n1 + ["D2"] * n2 + ["untagged"] * n0)
+    counts = np.zeros((cfg.n_bins, types.size), dtype=np.int32)
+    coupled = np.zeros(types.size, dtype=bool)
+    for k, t in enumerate(types):
+        lead = {"D1": cfg.lead_bins[0], "D2": cfg.lead_bins[1]}.get(t, cfg.lead_bins[0])
+        is_coupled = rng.random() < cfg.coupled_fraction
+        coupled[k] = is_coupled
+        # neural at t tracks speed at t + lead  -> neural leads speed by `lead` bins
+        d = np.roll(drive, -lead) if is_coupled else _ar1(rng, cfg.n_bins, 1, cfg.ar_coef)[:, 0]
+        lam = cfg.base_rate_hz * cfg.bin_s * np.exp(cfg.gain * d - 0.5 * cfg.gain**2)
+        counts[:, k] = rng.poisson(lam)
+    blocks = np.minimum(np.arange(cfg.n_bins) * cfg.n_blocks // cfg.n_bins, cfg.n_blocks - 1)
+    sess = OptoSession(
+        counts=counts,
+        unit_type=types,
+        unit_id=np.arange(types.size),
+        speed=speed,
+        blocks=blocks,
+        bin_s=cfg.bin_s,
+        meta={
+            "source": "synthetic_lead",
+            "session": "synthetic",
+            "subject_id": "synthetic",
+            "genotype": "none",
+            "epoch": "all",
+            "planted": {"lead_bins": list(cfg.lead_bins), "coupled_fraction": cfg.coupled_fraction},
+        },
+    )
+    return sess, {"coupled": coupled, "lead_bins": cfg.lead_bins}

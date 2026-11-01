@@ -41,6 +41,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "hypothesis>=6"]
+# Experiment 4: NWB-zarr sessions read over HTTP from the AIND open bucket.
+aind = ["zarr>=2.16,<3", "fsspec>=2023.1", "aiohttp>=3.8", "requests>=2.28"]
 allen = [
   "allensdk>=2.16", "pandas<2.1", "numpy<2", "pynwb>=2.3,<2.6", "hdmf>=3.5,<3.14",
   # Seen on WSL: uv resolved boto3 0.0.3 -> botocore 0.76 -> six 1.7.3 (2014), and dateutil then

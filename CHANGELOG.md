@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Experiment 4: `acd lead` — do optotagged D1 / D2 spikes lead running speed? Loader for
+  the Neuropixels Opto sessions (Lakunina et al. 2026) read straight from the AIND open
+  bucket as NWB-zarr (`aind` extra: zarr, fsspec); per-unit and population lag profiles
+  against a shift null; pooled H5–H7 verdicts; pre-registered in
+  `docs/experiment4_preregistration.md` before the first fit.
+- Post hoc population measure (mean z-rate cross-correlation) added after the first real
+  session showed the pre-registered ridge lag profile is dominated by block-level changes in
+  running; both are reported, the verdict uses the pre-registered one.
+
 ## 0.2.1 — 2026-10-31
 - Docs only. README cut to a landing page (install, quickstart, the three contracts, headline results); the full write-up with the verdict table and limits moved to `docs/results.md`. Fixed a dangling "question 2" reference, an unnamed paper, and two line-wrap artifacts the PyPI page exposed.
 

@@ -5,6 +5,7 @@ acd fetch    --session 715093703 --out data/ecephys    # needs the allen extra (
 acd latent   --data data/ecephys/<session>_<a1>_<a2>.npz --out outputs/latent
 acd coupling --data data/ecephys/<s>_areas.npz --conn data/conn_<s>.npy --out outputs/coupling
 acd force    --mat Switching_2p_Struc_Main.mat --mouse all --out outputs/force_klee   # experiment 3
+acd lead     --sessions all --out outputs/lead_aind     # experiment 4 (needs the aind extra)
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from .experiments import (
     run_latent_experiment,
 )
 from .provenance import provenance
-from .report import plot_coupling, plot_force, plot_latent
+from .report import plot_coupling, plot_force, plot_latent, plot_lead, plot_lead_pooled
 from .synth import CoupledSynthConfig, SynthConfig, make_synthetic, make_synthetic_coupled
 
 
@@ -204,6 +205,100 @@ def cmd_force(args: argparse.Namespace) -> int:
     return 0
 
 
+def _summarise_lead(m: dict) -> str:
+    lines = []
+    for t, bt in m["by_type"].items():
+        med = np.median(bt["coupled_peak_lags_s"]) if bt["coupled_peak_lags_s"] else float("nan")
+        lines.append(
+            f"{t:9s} n={bt['n']:3d} coupled={bt['n_coupled']:3d} median peak lag {med:+.3f} s"
+        )
+    for name, p in m["population"].items():
+        flag = "above null" if p["peak_above_null"] else "below null"
+        xc = p.get("mean_rate_xcorr_post_hoc")
+        post = (
+            f"; mean-rate xcorr peak {xc['peak_lag_s']:+.2f} s r {xc['peak_r']:+.2f}"
+            f" ({'coupled' if xc['coupled'] else 'not coupled'}, post hoc)"
+            if xc
+            else ""
+        )
+        lines.append(
+            f"pop {name:13s} n={p['n_units']:3d} ridge peak {p['peak_lag_s']:+.2f} s "
+            f"R2 {p['peak_r2']:.3f} {flag}{post}"
+        )
+    fa = m.get("exploratory_fa")
+    if fa:
+        s = fa["selected"]
+        vp = fa["variance_partition"]
+        lines.append(
+            f"exploratory FA ({fa['bin_s'] * 1000:.0f} ms): "
+            f"d_shared={s['d_shared']} d_private={s['d_private']} "
+            f"shared frac D1 {vp['D1']['shared']:.2f} D2 {vp['D2']['shared']:.2f}; "
+            f"shared-latent peak lag {fa['shared_lag_profile']['peak_lag_s']:+.2f} s"
+        )
+    return "\n".join(lines)
+
+
+def cmd_lead(args: argparse.Namespace) -> int:
+    from .experiments_lead import LeadConfig, pool_lead, run_lead_session
+
+    cfg = LeadConfig(seed=args.seed)
+    out = Path(args.out)
+    results = []
+    if args.synthetic:
+        from .synth import LeadSynthConfig, make_synthetic_lead
+
+        sess, _ = make_synthetic_lead(LeadSynthConfig(seed=args.seed))
+        sessions = [("synthetic", sess)]
+    else:
+        from .aind_opto import SESSIONS, AindOptoConfig, load_aind_opto
+
+        names = list(SESSIONS) if args.sessions == "all" else args.sessions.split(",")
+        sessions = []
+        for name in names:
+            try:
+                sess = load_aind_opto(AindOptoConfig(session=name), cache_dir=args.cache)
+                sessions.append((name, sess))
+            except Exception as e:  # one bad session must not stop the sweep
+                print(f"== {name}: skipped ({type(e).__name__}: {e})")
+    for name, sess in sessions:
+        sub = out / name
+        if args.resume and (sub / "metrics.json").exists():
+            with open(sub / "metrics.json") as fh:
+                m = json.load(fh)
+            print(f"== {name}: cached")
+        else:
+            m = run_lead_session(sess, cfg)
+            _write_metrics(m, sub, cfg, sess.meta)
+            plot_lead(m, sub)
+            print(f"== {name}: {sess.types()} {sess.n_bins} bins ==")
+            print(_summarise_lead(m))
+        results.append(m)
+    if len(results) > 1 or not args.synthetic:
+        pooled = pool_lead(results, cfg)
+        p = _write_metrics(pooled, out, cfg, {"sessions": [r["session"] for r in results]})
+        plot_lead_pooled(pooled, out)
+        v = pooled["verdicts"]
+        print("== pooled ==")
+        for t in ("D1", "D2"):
+            pt = pooled["per_type"][t]
+            lo, hi = pt["median_ci95_s"]
+            print(
+                f"{t}: {pt['n_coupled']}/{pt['n_units']} coupled over {pt['n_sessions']} sessions; "
+                f"median lag {pt['median_lag_s']:+.3f} s [{lo:+.3f}, {hi:+.3f}]; "
+                f"population negative+above-null "
+                f"{pt['population_negative_above_null']}/{pt['population_profiles']}"
+            )
+        d = pooled["D1_minus_D2"]
+        lo, hi = d["ci95_s"]
+        print(f"D1-D2 median lag {d['median_diff_s']:+.3f} s CI95 [{lo:+.3f}, {hi:+.3f}]")
+        print(
+            f"H5a {v['H5a_pooled_lead']}  H5b {v['H5b_population_lead']}  "
+            f"H6 {v['H6_same_lead']}  H7 {v['H7_coupled_fraction']}"
+        )
+        print(f"wrote {p}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="acd", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -255,6 +350,21 @@ def main(argv: list[str] | None = None) -> int:
     fo.add_argument("--draws", type=int, default=10)
     fo.add_argument("--seed", type=int, default=0)
     fo.set_defaults(fn=cmd_force)
+
+    le = sub.add_parser(
+        "lead", help="experiment 4: do tagged D1/D2 spikes lead running speed? (aind extra)"
+    )
+    le.add_argument(
+        "--sessions", default="all", help="'all' or comma-separated ecephys_<subject>_<date>_<time>"
+    )
+    le.add_argument(
+        "--cache", default="data/aind_opto", help="fetched sessions cached here as .npz"
+    )
+    le.add_argument("--out", required=True)
+    le.add_argument("--resume", action="store_true", help="skip sessions whose metrics.json exists")
+    le.add_argument("--synthetic", action="store_true", help="run on a planted synthetic session")
+    le.add_argument("--seed", type=int, default=0)
+    le.set_defaults(fn=cmd_lead)
 
     args = p.parse_args(argv)
     return int(args.fn(args))

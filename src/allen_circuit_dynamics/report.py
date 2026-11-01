@@ -252,3 +252,94 @@ def plot_force(metrics: dict, out_dir: Path, tag: str = "") -> list[str]:
     plt.close(fig)
     written.append(str(p))
     return written
+
+
+def plot_lead(metrics: dict, out_dir: Path) -> list[str]:
+    """Experiment 4, one session: per-unit peak-lag strip by type; population lag profiles."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    label = metrics.get("session") or "session"
+    units = metrics["units"]
+    present = {u["type"] for u in units}
+    types = [t for t in ("D1", "D2", "ChAT", "Sst", "Ntrk1", "untagged") if t in present]
+
+    fig, ax = plt.subplots(figsize=(6.4, 3.2))
+    rng = np.random.default_rng(0)
+    for i, t in enumerate(types):
+        us = [u for u in units if u["type"] == t]
+        x = np.array([u["peak_lag_s"] for u in us])
+        c = np.array([u["coupled"] for u in us])
+        jitter = rng.uniform(-0.18, 0.18, size=x.size)
+        lab = (None, None) if i else ("not coupled", "speed-coupled")
+        ax.scatter(x[~c], i + jitter[~c], s=10, color="0.75", label=lab[0])
+        ax.scatter(x[c], i + jitter[c], s=14, color="C0", label=lab[1])
+        if c.any():
+            ax.plot([np.median(x[c])] * 2, [i - 0.3, i + 0.3], color="C3", lw=2)
+    ax.axvline(0, color="k", lw=0.8)
+    ax.set_yticks(range(len(types)))
+    ax.set_yticklabels([f"{t} (n={sum(u['type'] == t for u in units)})" for t in types])
+    ax.set_xlabel("peak lag, s  (negative = neural leads speed)")
+    ax.set_title(f"{label}: per-unit peak lag vs running speed")
+    ax.legend(loc="upper right", fontsize=8, frameon=False)
+    fig.tight_layout()
+    p = out_dir / "lead_unit_peaks.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    written.append(str(p))
+
+    pops = metrics.get("population", {})
+    if pops:
+        fig, (ax, ax2) = plt.subplots(1, 2, figsize=(9.6, 3.2))
+        L = metrics["config"]["max_lag_bins"]
+        xl = np.arange(-L, L + 1) * metrics["bin_s"]
+        for i, (name, prof) in enumerate(pops.items()):
+            lags = np.array(prof["lags_bins"]) * metrics["bin_s"]
+            ax.plot(lags, prof["r2"], color=f"C{i}", label=f"{name} (n={prof['n_units']})")
+            ax.plot(lags, prof["null_p95"], color=f"C{i}", lw=0.8, ls=":")
+            xc = prof.get("mean_rate_xcorr_post_hoc")
+            if xc:
+                ax2.plot(xl, xc["r"], color=f"C{i}", label=f"{name} peak {xc['peak_lag_s']:+.2f} s")
+                ax2.axhline(xc["null_p95_abs_r"], color=f"C{i}", lw=0.8, ls=":")
+        for a in (ax, ax2):
+            a.axvline(0, color="k", lw=0.8)
+            a.set_xlabel("lag, s  (negative = neural leads speed)")
+            a.legend(fontsize=7, frameon=False)
+        ax.set_ylabel("held-out R² of speed")
+        ax.set_title("pre-registered: ridge lag profile (dotted: null p95)", fontsize=9)
+        ax2.set_ylabel("r(mean z-rate, speed)")
+        ax2.set_title("post hoc: mean-rate cross-correlation (dotted: null p95 |r|)", fontsize=9)
+        fig.suptitle(label, fontsize=10)
+        fig.tight_layout()
+        p = out_dir / "lead_population_profile.png"
+        fig.savefig(p, dpi=150)
+        plt.close(fig)
+        written.append(str(p))
+    return written
+
+
+def plot_lead_pooled(pooled: dict, out_dir: Path) -> list[str]:
+    """Experiment 4, pooled: histogram of coupled-unit peak lags per type with the median CI."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharex=True)
+    for ax, t in zip(axes, ("D1", "D2"), strict=True):
+        pt = pooled["per_type"][t]
+        x = np.asarray(pt["coupled_peak_lags_s"])
+        if x.size:
+            ax.hist(x, bins=np.arange(-1.0, 1.05, 0.05), color="C0", alpha=0.8)
+            lo, hi = pt["median_ci95_s"]
+            ax.axvspan(lo, hi, color="C3", alpha=0.2)
+            ax.axvline(pt["median_lag_s"], color="C3", lw=2)
+        ax.axvline(0, color="k", lw=0.8)
+        ax.set_title(
+            f"{t}: {pt['n_coupled']} coupled of {pt['n_units']} units, {pt['n_sessions']} sessions"
+        )
+        ax.set_xlabel("peak lag, s")
+    axes[0].set_ylabel("units")
+    fig.suptitle(
+        "Coupled-unit peak lag vs running speed (red: median, bootstrap 95% CI)", fontsize=10
+    )
+    fig.tight_layout()
+    p = out_dir / "lead_pooled_peaks.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    return [str(p)]

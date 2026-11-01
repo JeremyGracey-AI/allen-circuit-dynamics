@@ -2,6 +2,12 @@
 
 Decisions and state, newest first. Kept so the next person (or the author in a month) knows why things are the way they are.
 
+## 2026-10-31 (evening)
+
+- Experiment 4 built and pre-registered (`0fe8bca`): spike-resolution lead test on the Neuropixels Opto optotagged D1/D2 units, read from `s3://aind-open-data` (2025 NWB-zarr re-exports carry `predicted_cell_type`). Loader `aind_opto.py`, runner `experiments_lead.py`, `acd lead`, 3 tests.
+- First real session (`661398_2023-04-06`, 27 D1 / 4 D2): per-unit peak lags −0.24 s (D1), −0.37 s (D2), −0.16 s (untagged); mean-rate cross-correlation peaks −0.22 / −0.19 / −0.17 s, all above null. The pre-registered ridge lag profile is negative at every lag: the mouse runs in 3 of 12 CV blocks and sits in the rest, so held-out R² across contiguous blocks measures non-stationarity, not timing. Reported as "H5b not supported" with that explanation; the cross-correlation is labelled post hoc.
+- Full 40-session run is to happen on the Blade: `uv sync --extra aind && .venv/bin/acd lead --out outputs/lead_aind --resume` (~2 min per session).
+
 ## 2026-10-31
 
 - Experiment 3 (D1/D2 striatum + lever, Klee et al. 2026, six mice) built, pre-registered, run in the cloud, written up; results under `outputs/force_klee/`, verdict table in README. Robust finding: equal shared fraction for D1 and D2 in every mouse, private 1–5%. Lever decoding substantive in 2 of 6 mice; H3 (neural lead) not supported at 30 fps.

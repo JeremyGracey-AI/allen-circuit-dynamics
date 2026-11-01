@@ -19,3 +19,7 @@ outputs/*
 !outputs/force_klee/
 !outputs/force_klee/**
 outputs/force_klee/*.log
+data/aind_opto/
+!outputs/lead_aind/
+!outputs/lead_aind/**
+outputs/lead_aind/*.log
