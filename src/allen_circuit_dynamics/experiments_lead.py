@@ -79,7 +79,10 @@ def xcorr_lags(a: np.ndarray, b: np.ndarray, max_lag: int) -> np.ndarray:
     za, zb = _zscore(a.astype(float)), _zscore(b.astype(float)[:, None])[:, 0]
     L = max_lag
     bp = np.concatenate([np.zeros(L), zb, np.zeros(L)])
-    win = np.lib.stride_tricks.sliding_window_view(bp, n)  # row s: bp[s : s + n], lag = L - s
+    # Row s is bp[s : s + n], lag = L - s. Copied to a contiguous block so the product
+    # goes through BLAS: numpy 1.x multiplies an overlapping strided view with a
+    # non-BLAS loop, ~100x slower (17 s vs 0.14 s per call on a 60k-bin session).
+    win = np.ascontiguousarray(np.lib.stride_tricks.sliding_window_view(bp, n))
     r = (win @ za) / n  # (2L+1, k), rows in descending lag
     return r[::-1]  # ascending: row i is lag -L + i
 

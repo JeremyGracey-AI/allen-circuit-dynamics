@@ -16,6 +16,9 @@
 - `acd lead` runs one session at a time (fetch → analyse → write), retries transient network
   errors (missing columns are not retried), records skipped sessions with reasons in the pooled
   `metrics.json`, and line-buffers its output so `tail -f` on a nohup log shows progress.
+- `xcorr_lags` copies its sliding window to contiguous memory before the matmul: under
+  numpy 1.23 the strided-view product took a non-BLAS path (17 s vs 0.14 s per call).
+  Results unchanged to 3e-14.
 - Cross-machine check: 22 sessions computed in the cloud and on WSL2 with different
   numpy / scipy / scikit-learn versions agree to 3e-13 on every recorded field.
 
