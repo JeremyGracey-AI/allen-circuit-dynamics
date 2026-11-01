@@ -19,8 +19,9 @@
 - `xcorr_lags` copies its sliding window to contiguous memory before the matmul: under
   numpy 1.23 the strided-view product took a non-BLAS path (17 s vs 0.14 s per call).
   Results unchanged to 3e-14.
-- Cross-machine check: 22 sessions computed in the cloud and on WSL2 with different
-  numpy / scipy / scikit-learn versions agree to 3e-13 on every recorded field.
+- Cross-machine check: all 31 sessions computed twice (cloud, plus WSL2 or macOS) with
+  different numpy / scipy / scikit-learn versions agree to 5e-13 on every recorded field;
+  the pooled verdict file is identical.
 
 ## 0.2.1 — 2026-10-31
 - Docs only. README cut to a landing page (install, quickstart, the three contracts, headline results); the full write-up with the verdict table and limits moved to `docs/results.md`. Fixed a dangling "question 2" reference, an unnamed paper, and two line-wrap artifacts the PyPI page exposed.

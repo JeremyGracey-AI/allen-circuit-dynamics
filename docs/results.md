@@ -216,11 +216,12 @@ different mice, a different lab, and running rather than a lever press.
 ![session 661398_2023-04-06](https://raw.githubusercontent.com/JeremyGracey-AI/allen-circuit-dynamics/main/outputs/lead_aind/ecephys_661398_2023-04-06_16-02-15/lead_population_profile.png)
 
 `scripts/evaluate_prereg_exp4.py outputs/lead_aind` rebuilds the table from the
-per-session files. Every session was computed twice, in the cloud and on a
-second machine (WSL2), on different numerical stacks (numpy 2.4 / 1.23,
-scipy 1.17 / 1.10, scikit-learn 1.9 / 1.7). On the 22 sessions both runs had
-finished at the first comparison, all 40,306 recorded fields agree to within
-3 × 10⁻¹³, and no peak lag, coupling flag or count differs.
+per-session files. Every session was computed twice: once in the cloud (Linux,
+numpy 2.4, scipy 1.17, scikit-learn 1.9) and once on a second machine — 22
+sessions on WSL2 (numpy 1.23, scipy 1.10, scikit-learn 1.7) and 9 on macOS
+arm64. The committed files are the second-machine copies. Against the cloud
+run, all 55,298 recorded per-session fields agree to within 5 × 10⁻¹³, no peak
+lag, coupling flag or count differs, and the pooled verdict file is identical.
 
 ## Limits, stated up front
 
